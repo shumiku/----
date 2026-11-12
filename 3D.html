@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHG-3D 空間模擬器 (具旋轉與自訂坪數)</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #e9ecef;
+        }
+        #ui-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            pointer-events: auto;
+            z-index: 10;
+            width: 280px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        #ui-panel.collapsed {
+            transform: translateX(calc(-100% - 20px));
+        }
+        .toggle-btn {
+            position: absolute;
+            top: 20px;
+            right: -30px;
+            width: 30px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-left: none;
+            border-radius: 0 8px 8px 0;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 4px 0 8px rgba(0,0,0,0.1);
+            z-index: 11;
+            font-weight: bold;
+            color: #333;
+        }
+        .toggle-btn:hover {
+            background: #f1f3f5;
+        }
+
+        /* --- 新增：右側商品資訊面板樣式 --- */
+        #right-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            pointer-events: auto;
+            z-index: 10;
+            width: 250px;
+            max-height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+        #right-panel.collapsed {
+            transform: translateX(calc(100% + 20px));
+        }
+        .toggle-btn-right {
+            position: absolute;
+            top: 20px;
+            left: -30px;
+            width: 30px;
+            height: 40px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-right: none;
+            border-radius: 8px 0 0 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: -4px 0 8px rgba(0,0,0,0.1);
+            z-index: 11;
+            font-weight: bold;
+            color: #333;
+        }
+        .toggle-btn-right:hover {
+            background: #f1f3f5;
+        }
+        #product-info-content {
+            flex: 1;
+            overflow-y: auto;
+            margin-right: -10px;
+            padding-right: 10px;
+        }
+        #product-info-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        #product-info-content::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        .item-btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 10px;
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            text-align: left;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .item-btn:hover {
+            background: #c99339;
+            color: #fff;
+            border-color: #c99339;
+        }
+        .instructions {
+            font-size: 0.82rem;
+            color: #555;
+            line-height: 1.6;
+        }
+        .status-badge {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-bottom: 10px;
+        }
+        .highlight {
+            color: #d32f2f;
+            font-weight: bold;
+        }
+        .room-settings {
+            background: #f1f3f5;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+        }
+        .room-settings label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .room-settings-flex {
+            display: flex;
+            gap: 6px;
+        }
+        .room-settings input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 6px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 13px;
+            outline: none;
+            text-align: center;
+        }
+        .room-settings button {
+            background: #333;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 0 15px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+        }
+        .room-settings button:hover {
+            background: #c99339;
+        }
+        
+        .custom-furniture-btn {
+            width: 100%; 
+            padding: 10px 0 !important; 
+            margin-top: 6px; 
+            border-radius: 6px !important;
+            font-weight: bold;
+        }
+
+        .category-select {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            outline: none;
+        }
+        #product-list-container {
+            max-height: 25vh;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            padding: 8px;
+            border-radius: 6px;
+            background: #fafafa;
+        }
+        #product-list-container::-webkit-scrollbar {
+            width: 6px;
+        }
+        #product-list-container::-webkit-scrollbar-thumb {
+            background: #ccc;
+            border-radius: 3px;
+        }
+
+        /* 圖例標示與操作說明樣式 */
+        #legend-panel {
+            position: absolute;
+            bottom: 25px;
+            right: 25px;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 14px 18px;
+            border-radius: 10px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            pointer-events: none; 
+            z-index: 10;
+            font-size: 13px;
+            color: #444;
+            border: 1px solid #e0e0e0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+        .legend-item:last-child {
+            margin-bottom: 0;
+        }
+        .legend-color-grid {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 1px solid #bbb;
+            background-color: #f5f5f5;
+            background-image: linear-gradient(#ccc 1px, transparent 1px), linear-gradient(90deg, #ccc 1px, transparent 1px);
+            background-size: 4px 4px;
+            border-radius: 2px;
+        }
+        .legend-color-red {
+            display: inline-block;
+            width: 16px;
+            height: 4px;
+            background-color: #ff3333;
+            border-radius: 2px;
+        }
+        .legend-divider {
+            border-top: 1px dashed #ddd;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="ui-panel">
+        <div class="toggle-btn" id="panel-toggle" onclick="window.togglePanel()">❮</div>
+        
+        <h3 style="margin:0 0 10px 0;">3D 家具配置</h3>
+        <div class="status-badge">✓ 支援網格吸附與方向標示</div>
+
+        <!-- 空間坪數設定 -->
+        <div class="room-settings">
+            <label>📐 空間大小 (坪數)</label>
+            <div class="room-settings-flex">
+                <input type="number" id="room-ping-input" value="7.5" step="0.5" min="1" style="text-align: left;">
+                <button onclick="window.updateRoomSize()">設定</button>
+            </div>
+        </div>
+
+        <!-- 自訂家具設定 -->
+        <div class="room-settings" style="background: #fffbdf; border-color: #fce89d;">
+            <label>🛠️ 新增自訂家具</label>
+            <input type="text" id="custom-name" placeholder="家具名稱 (例: 系統櫃)" style="width: 100%; box-sizing: border-box; margin-bottom: 8px; text-align: left; padding-left: 10px;">
+            <div class="room-settings-flex">
+                <input type="number" id="custom-l" placeholder="長(L)" min="1">
+                <input type="number" id="custom-w" placeholder="寬(W)" min="1">
+                <input type="number" id="custom-h" placeholder="高(H)" min="1">
+            </div>
+            <button class="custom-furniture-btn" onclick="window.addCustomFurniture()">➕ 加入自訂家具</button>
+        </div>
+        
+        <!-- 空間分類下拉選單 -->
+        <select id="room-filter" class="category-select" onchange="window.handleRoomChange()">
+            <option value="">全部空間</option>
+        </select>
+
+        <!-- 商品分類下拉選單 -->
+        <select id="category-filter" class="category-select" onchange="window.renderProductList()">
+            <option value="">全部分類</option>
+        </select>
+
+        <!-- 動態商品列表容器 -->
+        <div id="product-list-container">
+            <div style="text-align:center; padding:10px; color:#999; font-size:14px;">資料載入中...</div>
+        </div>
+    </div>
+
+    <!-- 新增：右側商品資訊面板 -->
+    <div id="right-panel">
+        <div class="toggle-btn-right" id="right-panel-toggle" onclick="window.toggleRightPanel()">❯</div>
+        <h3 style="margin:0 0 10px 0;">已放置商品清單</h3>
+        <div id="product-info-content">
+            <div style="color:#888; font-size:14px;">尚未選擇商品</div>
+        </div>
+        <div id="total-price-container" style="margin-top: 10px; font-weight: bold; border-top: 1px solid #ddd; padding-top: 10px; display: none;">
+            總計: <span style="color: #d32f2f;">$<span id="total-price">0</span></span>
+        </div>
+    </div>
+
+    <!-- 畫面右下角圖例與操作說明整合區塊 -->
+    <div id="legend-panel">
+        <div class="legend-item">
+            <span class="legend-color-grid"></span>
+            <span>網格 1 格 = 10 公分</span>
+        </div>
+        <div class="legend-item">
+            <span class="legend-color-red"></span>
+            <span>紅線 = 家具的「長」</span>
+        </div>
+        <div class="legend-divider"></div>
+        <div class="instructions">
+            🖱️ <b>拖曳：</b> 移動商品與顯示對齊輔助線<br>
+            ⌨️ <b>[R] 鍵：</b> <span class="highlight">拖曳時旋轉 90 度</span><br>
+            🗑️ <b>[Del] 鍵：</b> <span class="highlight">刪除游標指著的商品</span><br>
+            🔄 <b>空白處拖曳：</b> 旋轉視角
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { DragControls } from 'three/addons/controls/DragControls.js';
+        
+        // --- 引入 Firebase 模組 ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+        import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+        // 1. 初始化場景
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0xe9ecef);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 3000);
+        camera.position.set(400, 600, 700);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+        // 2. 建立燈光
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(200, 600, 300);
+        dirLight.castShadow = true;
+        dirLight.shadow.camera.left = -600;
+        dirLight.shadow.camera.right = 600;
+        dirLight.shadow.camera.top = 600;
+        dirLight.shadow.camera.bottom = -600;
+        dirLight.shadow.bias = -0.001;
+        scene.add(dirLight);
+
+        // 3. 建立環境 (地板與雙面牆壁)
+        let roomSize = 500; 
+        const wallHeight = 250;
+        const wallThickness = 20;
+
+        const floorGeo = new THREE.PlaneGeometry(roomSize, roomSize);
+        const floorMat = new THREE.MeshStandardMaterial({ color: 0xdddddd });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        let gridHelper = new THREE.GridHelper(roomSize, Math.round(roomSize / 10), 0xbbbbbb, 0xdddddd);
+        gridHelper.position.y = 0.5;
+        scene.add(gridHelper);
+
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf5f5f5 });
+        const leftWallGeo = new THREE.BoxGeometry(wallThickness, wallHeight, roomSize + wallThickness);
+        const leftWall = new THREE.Mesh(leftWallGeo, wallMat);
+        leftWall.position.set(-roomSize/2 - wallThickness/2, wallHeight/2, 0); 
+        leftWall.receiveShadow = true;
+        scene.add(leftWall);
+
+        const backWallGeo = new THREE.BoxGeometry(roomSize + wallThickness, wallHeight, wallThickness);
+        const backWall = new THREE.Mesh(backWallGeo, wallMat);
+        backWall.position.set(0, wallHeight/2, -roomSize/2 - wallThickness/2);
+        backWall.receiveShadow = true;
+        scene.add(backWall);
+
+        // 4. 動態投影輔助線系統
+        const helperMat = new THREE.LineBasicMaterial({ color: 0xff0000, opacity: 0.6, transparent: true });
+        const helperGeo = new THREE.BufferGeometry();
+        const dragHelper = new THREE.LineSegments(helperGeo, helperMat);
+        dragHelper.visible = false;
+        scene.add(dragHelper);
+
+        function getEffectiveDims(obj) {
+            const w = obj.geometry.parameters.width;
+            const d = obj.geometry.parameters.depth;
+            const isRotated = Math.abs(Math.round(obj.rotation.y / (Math.PI/2)) % 2) === 1;
+            return {
+                w: isRotated ? d : w,
+                d: isRotated ? w : d,
+                h: obj.geometry.parameters.height
+            };
+        }
+
+        function updateDragHelper(obj) {
+            const dims = getEffectiveDims(obj);
+            const x = obj.position.x;
+            const z = obj.position.z;
+            const bottomY = obj.position.y - dims.h / 2; 
+            const floorY = 1; 
+
+            const hw = dims.w / 2;
+            const hd = dims.d / 2;
+
+            const pts = [
+                x + hw, bottomY, z + hd,   x + hw, floorY, z + hd,
+                x - hw, bottomY, z + hd,   x - hw, floorY, z + hd,
+                x - hw, bottomY, z - hd,   x - hw, floorY, z - hd,
+                x + hw, bottomY, z - hd,   x + hw, floorY, z - hd,
+                x + hw, floorY, z + hd,    x - hw, floorY, z + hd,
+                x - hw, floorY, z + hd,    x - hw, floorY, z - hd,
+                x - hw, floorY, z - hd,    x + hw, floorY, z - hd,
+                x + hw, floorY, z - hd,    x + hw, floorY, z + hd
+            ];
+            dragHelper.geometry.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+        }
+
+        // 5. 設定控制器與互動邏輯
+        const orbitControls = new OrbitControls(camera, renderer.domElement);
+        orbitControls.maxPolarAngle = Math.PI / 2 - 0.05;
+
+        const objects = [];
+        const dragControls = new DragControls(objects, camera, renderer.domElement);
+        const raycaster = new THREE.Raycaster();
+        const GRID_SIZE = 10; 
+        
+        let activeDragObject = null;
+        let hoveredObject = null;    
+
+        dragControls.addEventListener('hoveron', function (event) {
+            hoveredObject = event.object;
+            document.body.style.cursor = 'pointer';
+        });
+        dragControls.addEventListener('hoveroff', function (event) {
+            if(hoveredObject === event.object) {
+                hoveredObject = null;
+                document.body.style.cursor = 'auto';
+            }
+        });
+
+        dragControls.addEventListener('dragstart', function (event) {
+            orbitControls.enabled = false;
+            activeDragObject = event.object;
+            event.object.material.emissive.setHex(0x222222); 
+            dragHelper.visible = true;
+            updateDragHelper(event.object);
+        });
+
+        dragControls.addEventListener('drag', function (event) {
+            const obj = event.object;
+            const dims = getEffectiveDims(obj);
+
+            let currentX = obj.position.x;
+            let currentZ = obj.position.z;
+
+            const minX = (-roomSize / 2) + (dims.w / 2);
+            const maxX = (roomSize / 2) - (dims.w / 2);
+            const minZ = (-roomSize / 2) + (dims.d / 2);
+            const maxZ = (roomSize / 2) - (dims.d / 2);
+
+            let boundedX = Math.max(minX, Math.min(maxX, currentX));
+            let boundedZ = Math.max(minZ, Math.min(maxZ, currentZ));
+
+            obj.position.x = Math.round(boundedX / GRID_SIZE) * GRID_SIZE;
+            obj.position.z = Math.round(boundedZ / GRID_SIZE) * GRID_SIZE;
+            obj.position.y = 150; 
+
+            updateDragHelper(obj);
+        });
+
+        dragControls.addEventListener('dragend', function (event) {
+            orbitControls.enabled = true;
+            activeDragObject = null;
+            event.object.material.emissive.setHex(0x000000);
+            dragHelper.visible = false;
+
+            const obj = event.object;
+            const origin = new THREE.Vector3(obj.position.x, 800, obj.position.z);
+            const direction = new THREE.Vector3(0, -1, 0);
+            raycaster.set(origin, direction);
+
+            const intersectables = [...objects.filter(o => o !== obj), floor];
+            const intersects = raycaster.intersectObjects(intersectables);
+
+            if (intersects.length > 0) {
+                obj.position.y = intersects[0].point.y + (obj.geometry.parameters.height / 2);
+            }
+        });
+
+        // 監聽鍵盤事件：旋轉 與 刪除
+        window.addEventListener('keydown', (event) => {
+            if (event.key === 'Delete' || event.key === 'Backspace') {
+                const target = activeDragObject || hoveredObject;
+                if (target) {
+                    scene.remove(target); 
+                    const index = objects.indexOf(target);
+                    if (index > -1) objects.splice(index, 1);
+                    
+                    target.traverse((child) => {
+                        if (child.isMesh || child.isSprite) {
+                            if (child.geometry) child.geometry.dispose();
+                            if (child.material) {
+                                if (child.material.map) child.material.map.dispose();
+                                child.material.dispose();
+                            }
+                        }
+                    });
+
+                    if (activeDragObject === target) {
+                        activeDragObject = null;
+                        dragHelper.visible = false;
+                        orbitControls.enabled = true;
+                        document.body.style.cursor = 'auto';
+                    }
+                    
+                    // --- 刪除後更新右側商品清單面板 ---
+                    window.updateProductInfoPanel();
+                    return; 
+                }
+            }
+
+            if ((event.key === 'r' || event.key === 'R') && activeDragObject) {
+                activeDragObject.rotation.y -= Math.PI / 2;
+                
+                const dims = getEffectiveDims(activeDragObject);
+                const minX = (-roomSize / 2) + (dims.w / 2);
+                const maxX = (roomSize / 2) - (dims.w / 2);
+                const minZ = (-roomSize / 2) + (dims.d / 2);
+                const maxZ = (roomSize / 2) - (dims.d / 2);
+                
+                activeDragObject.position.x = Math.max(minX, Math.min(maxX, activeDragObject.position.x));
+                activeDragObject.position.z = Math.max(minZ, Math.min(maxZ, activeDragObject.position.z));
+                
+                updateDragHelper(activeDragObject);
+            }
+        });
+
+        // 空間坪數設定
+        window.updateRoomSize = function() {
+            const ping = parseFloat(document.getElementById('room-ping-input').value);
+            if (isNaN(ping) || ping <= 0) return alert("請輸入有效的坪數數值！");
+            
+            const areaCm2 = ping * 33057.85;
+            roomSize = Math.round(Math.sqrt(areaCm2)); 
+
+            floor.geometry.dispose();
+            floor.geometry = new THREE.PlaneGeometry(roomSize, roomSize);
+            
+            scene.remove(gridHelper);
+            gridHelper.geometry.dispose();
+            gridHelper.material.dispose();
+            gridHelper = new THREE.GridHelper(roomSize, Math.round(roomSize / 10), 0xbbbbbb, 0xdddddd);
+            gridHelper.position.y = 0.5;
+            scene.add(gridHelper);
+
+            leftWall.geometry.dispose();
+            leftWall.geometry = new THREE.BoxGeometry(wallThickness, wallHeight, roomSize + wallThickness);
+            leftWall.position.set(-roomSize/2 - wallThickness/2, wallHeight/2, 0);
+
+            backWall.geometry.dispose();
+            backWall.geometry = new THREE.BoxGeometry(roomSize + wallThickness, wallHeight, wallThickness);
+            backWall.position.set(0, wallHeight/2, -roomSize/2 - wallThickness/2);
+
+            objects.forEach(obj => {
+                const dims = getEffectiveDims(obj);
+                const minX = (-roomSize / 2) + (dims.w / 2);
+                const maxX = (roomSize / 2) - (dims.w / 2);
+                const minZ = (-roomSize / 2) + (dims.d / 2);
+                const maxZ = (roomSize / 2) - (dims.d / 2);
+                
+                obj.position.x = Math.max(minX, Math.min(maxX, obj.position.x));
+                obj.position.z = Math.max(minZ, Math.min(maxZ, obj.position.z));
+            });
+
+            if (activeDragObject) updateDragHelper(activeDragObject);
+        };
+
+        // 處理加入自訂家具的邏輯
+        window.addCustomFurniture = function() {
+            const nameInput = document.getElementById('custom-name').value.trim();
+            const productName = nameInput !== "" ? nameInput : '自訂家具';
+            
+            const l = parseFloat(document.getElementById('custom-l').value);
+            const w = parseFloat(document.getElementById('custom-w').value);
+            const h = parseFloat(document.getElementById('custom-h').value);
+
+            if (isNaN(l) || isNaN(w) || isNaN(h) || l <= 0 || w <= 0 || h <= 0) {
+                alert("請輸入有效的長(L)、寬(W)、高(H)數值！");
+                return;
+            }
+
+            const customHexColor = 0x607d8b; 
+            
+            // 傳遞 true 表示此為自訂家具 (預設價格設定為0)
+            window.addBox(w, h, l, customHexColor, productName, true, 0);
+
+            document.getElementById('custom-name').value = '';
+            document.getElementById('custom-l').value = '';
+            document.getElementById('custom-w').value = '';
+            document.getElementById('custom-h').value = '';
+        };
+
+        // 動態生成文字材質的函數，支援 isCustom 改變顏色
+        function makeTextSprite(message, isCustom = false) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.font = "bold 32px 'PingFang TC', sans-serif";
+            const textWidth = ctx.measureText(message).width;
+            
+            canvas.width = textWidth + 40;
+            canvas.height = 50;
+            
+            ctx.font = "bold 32px 'PingFang TC', sans-serif";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.9)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 將自訂家具改為紅色邊框，預設維持深灰
+            ctx.strokeStyle = isCustom ? "rgba(211, 47, 47, 1)" : "rgba(140, 122, 107, 1)";
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, canvas.width, canvas.height);
+            
+            // 將自訂家具改為紅色文字，預設維持深灰
+            ctx.fillStyle = isCustom ? "rgba(211, 47, 47, 1)" : "rgba(51, 51, 51, 1)";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(message, canvas.width / 2, canvas.height / 2);
+            
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, depthTest: false }); 
+            const sprite = new THREE.Sprite(spriteMaterial);
+            
+            sprite.scale.set(canvas.width * 0.5, canvas.height * 0.5, 1);
+            return sprite;
+        }
+
+        // 6. 生成家具函式 (新增 price 參數以利右上方面板顯示金額)
+        window.addBox = function(width, height, depth, hexColor, productName, isCustom = false, price = 0) {
+            const geometry = new THREE.BoxGeometry(width, height, depth);
+            const material = new THREE.MeshStandardMaterial({ 
+                color: hexColor,
+                roughness: 0.7,
+                metalness: 0.1
+            });
+            const box = new THREE.Mesh(geometry, material);
+            box.castShadow = true;
+            box.receiveShadow = true;
+            
+            // --- 將商品資訊存入 Mesh 供右上角面板使用 ---
+            box.userData = { name: productName, price: price, isCustom: isCustom };
+            
+            // --- 判斷長邊，決定紅線的方向與位置 ---
+            let markerGeo, markerX, markerZ;
+            if (width >= depth) {
+                markerGeo = new THREE.BoxGeometry(width * 0.4, 4, 4); 
+                markerX = 0;
+                markerZ = depth / 2 - 2;
+            } else {
+                markerGeo = new THREE.BoxGeometry(4, 4, depth * 0.4); 
+                markerX = width / 2 - 2;
+                markerZ = 0;
+            }
+
+            const markerMat = new THREE.MeshBasicMaterial({ color: 0xff3333 }); 
+            const marker = new THREE.Mesh(markerGeo, markerMat);
+            marker.position.set(markerX, height / 2 + 2, markerZ);
+            
+            marker.raycast = function() {}; 
+            box.add(marker); 
+
+            if(productName) {
+                const labelSprite = makeTextSprite(productName, isCustom);
+                labelSprite.position.set(0, height / 2 + 25, 0); 
+                
+                labelSprite.raycast = function() {}; 
+                box.add(labelSprite); 
+            }
+
+            box.position.set(50, height / 2, 50);
+            scene.add(box);
+            objects.push(box);
+            
+            dropObject(box);
+
+            // --- 新增商品後更新右側面板 ---
+            window.updateProductInfoPanel();
+        };
+
+        function dropObject(obj) {
+            const h = obj.geometry.parameters.height;
+            const origin = new THREE.Vector3(obj.position.x, 800, obj.position.z);
+            const direction = new THREE.Vector3(0, -1, 0);
+            raycaster.set(origin, direction);
+            
+            const intersectables = [...objects.filter(o => o !== obj), floor];
+            const intersects = raycaster.intersectObjects(intersectables);
+            
+            if (intersects.length > 0) {
+                obj.position.y = intersects[0].point.y + (h / 2);
+            }
+        }
+
+        // 7. 面板縮放控制 (左與右)
+        window.togglePanel = function() {
+            const panel = document.getElementById('ui-panel');
+            const btn = document.getElementById('panel-toggle');
+            panel.classList.toggle('collapsed');
+            if (panel.classList.contains('collapsed')) {
+                btn.innerHTML = '❯';
+            } else {
+                btn.innerHTML = '❮';
+            }
+        };
+
+        window.toggleRightPanel = function() {
+            const panel = document.getElementById('right-panel');
+            const btn = document.getElementById('right-panel-toggle');
+            panel.classList.toggle('collapsed');
+            if (panel.classList.contains('collapsed')) {
+                btn.innerHTML = '❮';
+            } else {
+                btn.innerHTML = '❯';
+            }
+        };
+
+        // --- 新增：動態更新右側商品資訊面板邏輯 ---
+        window.updateProductInfoPanel = function() {
+            const content = document.getElementById('product-info-content');
+            const totalContainer = document.getElementById('total-price-container');
+            const totalPriceSpan = document.getElementById('total-price');
+            
+            let html = '';
+            let total = 0;
+            let hasProduct = false;
+
+            // 掃描當前存在的所有物件，排除自訂商品
+            objects.forEach(obj => {
+                if (obj.userData && !obj.userData.isCustom && obj.userData.name) {
+                    hasProduct = true;
+                    const pPrice = Number(obj.userData.price) || 0;
+                    total += pPrice;
+                    html += `<div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 14px; border-bottom: 1px dashed #eee; padding-bottom: 4px;">
+                                <span>${obj.userData.name}</span>
+                                <span style="color: #d32f2f; font-weight: bold;">$${pPrice.toLocaleString()}</span>
+                             </div>`;
+                }
+            });
+
+            if (hasProduct) {
+                content.innerHTML = html;
+                totalContainer.style.display = 'block';
+                totalPriceSpan.innerText = total.toLocaleString();
+            } else {
+                content.innerHTML = '<div style="color:#888; font-size:14px;">尚未選擇商品</div>';
+                totalContainer.style.display = 'none';
+            }
+        };
+
+        // 8. Firebase 資料同步與渲染
+        const firebaseConfig = {
+            apiKey: "AIzaSyCGeNCoqImHVNppGEiGNNYAiiwuIvublVA",
+            authDomain: "chg-home.firebaseapp.com",
+            projectId: "chg-home",
+            storageBucket: "chg-home.firebasestorage.app",
+            messagingSenderId: "191029130468",
+            appId: "1:191029130468:web:09c9821695f3a0181ca8f1",
+            measurementId: "G-W2F489G53R"
+        };
+        
+        const appFirebase = initializeApp(firebaseConfig);
+        const db = getFirestore(appFirebase);
+        let allProducts = [];
+
+        // 嚴格定義空間與分類的對應關係
+        const roomCategoryMapping = {
+            '客廳': ['沙發', '電視櫃', '茶几'],
+            '臥室': ['床墊', '衣櫃', '化妝台'],
+            '書房': ['書桌', '書櫃', '電腦椅'],
+            '餐廳': ['餐桌', '餐椅', '餐邊櫃']
+        };
+
+        // 處理空間改變的連動邏輯
+        window.handleRoomChange = function() {
+            const selectedRoom = document.getElementById('room-filter').value;
+            const catSelect = document.getElementById('category-filter');
+            
+            let categories = [];
+            
+            if (selectedRoom && roomCategoryMapping[selectedRoom]) {
+                categories = roomCategoryMapping[selectedRoom];
+            } else {
+                Object.values(roomCategoryMapping).forEach(cats => {
+                    cats.forEach(c => {
+                        if (!categories.includes(c)) categories.push(c);
+                    });
+                });
+            }
+
+            catSelect.innerHTML = '<option value="">全部分類</option>';
+            categories.forEach(cat => {
+                catSelect.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
+
+            window.renderProductList();
+        };
+
+        async function loadProducts() {
+            try {
+                const qs = await getDocs(collection(db, "products"));
+                allProducts = [];
+                
+                qs.forEach(doc => {
+                    allProducts.push(doc.data());
+                });
+                
+                const rooms = ['客廳', '臥室', '書房', '餐廳'];
+                const roomSelect = document.getElementById('room-filter');
+                roomSelect.innerHTML = '<option value="">全部空間</option>';
+                rooms.forEach(room => {
+                    roomSelect.innerHTML += `<option value="${room}">${room}</option>`;
+                });
+
+                window.handleRoomChange();
+
+            } catch (err) {
+                console.error("Firebase 商品載入失敗:", err);
+                document.getElementById('product-list-container').innerHTML = '<div style="color:red; padding:10px; font-size: 14px;">資料載入失敗，請檢查網路。</div>';
+            }
+        }
+
+        window.renderProductList = function() {
+            const container = document.getElementById('product-list-container');
+            const selectedRoom = document.getElementById('room-filter').value;
+            const selectedCat = document.getElementById('category-filter').value;
+            
+            let filtered = allProducts;
+            
+            if (selectedRoom) {
+                filtered = filtered.filter(p => p.room === selectedRoom);
+            }
+            if (selectedCat) {
+                filtered = filtered.filter(p => p.category === selectedCat);
+            }
+            
+            const validProducts = filtered.filter(p => p.width && p.height && p.length);
+
+            if (validProducts.length === 0) {
+                container.innerHTML = '<div style="padding:10px; color:#888; text-align:center; font-size: 13px;">此篩選條件下無建立尺寸之商品</div>';
+                return;
+            }
+
+            const colors = [0x8B5A2B, 0xCD853F, 0x555555, 0x2E8B57, 0x4682B4, 0xD2691E, 0x808080, 0x34495e, 0x7f8c8d];
+            
+            container.innerHTML = validProducts.map(p => {
+                const colorHash = Math.abs(p.id.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0));
+                const hexColor = colors[colorHash % colors.length];
+                
+                const safeName = p.name.replace(/'/g, ""); 
+                const price = p.price || 0; // 取得金額 (無則為0)
+
+                // 將 price 作為第 7 個參數傳給 addBox
+                return `<button class="item-btn" style="font-size: 13px;" onclick="window.addBox(${p.width}, ${p.height}, ${p.length}, ${hexColor}, '${safeName}', false, ${price})">
+                    📦 ${p.name}<br><span style="font-size: 11px; color: #777;">(L${p.length} x W${p.width} x H${p.height})</span>
+                </button>`;
+            }).join('');
+        };
+
+        loadProducts();
+
+        // 9. 渲染迴圈
+        function animate() {
+            requestAnimationFrame(animate);
+            orbitControls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,2228 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CHG 好室選物 | 質感家具與居家生活</title>
+<style>
+  :root {
+    --primary: #8C7A6B; --primary-light: #D5CBBB; --bg-color: #F9F8F6;
+    --text-main: #333333; --text-muted: #777777; --danger: #D9534F; --success: #5CB85C;
+    --white: #FFFFFF; --border: #E0DCD3; --radius: 8px; --shadow: 0 4px 12px rgba(0,0,0,0.05);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'PingFang TC', sans-serif; }
+  /* 修改：將 padding-top 增加至 120px，以容納固定的 Header(70px) + 導覽列高度(~50px) */
+  body { background-color: var(--bg-color); color: var(--text-main); line-height: 1.6; padding-top: 120px; display: flex; flex-direction: column; min-height: 100vh; }
+  a { text-decoration: none; color: inherit; cursor: pointer; }
+  ul { list-style: none; }
+  button { cursor: pointer; border: none; background: none; font-family: inherit; }
+  input, select, textarea { border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-family: inherit; outline: none; width:100%;}
+  
+  header { position: fixed; top: 0; width: 100%; height: 70px; background: var(--white); box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; padding: 0 5%; z-index: 1000; }
+  .logo { font-size: 35px; font-weight: bold; color: var(--primary); }
+  .search-bar { flex: 1; max-width: 400px; margin: 0 20px; }
+  .search-bar input { width: 100%; padding: 10px 15px; border-radius: 20px; outline: none; border: 1px solid var(--border); }
+  .header-actions { display: flex; gap: 10px; align-items: center; }
+  .icon-btn { position: relative; padding: 6px 12px; border: 1px solid var(--border); border-radius: var(--radius); font-size:14px; white-space:nowrap; background:var(--white); color:var(--text-main); transition: 0.2s;}
+  .icon-btn:hover { background: #f1f1f1; }
+  .badge { position: absolute; top: -5px; right: -5px; background: var(--danger); color: white; font-size: 10px; padding: 2px 6px; border-radius: 10px; }
+
+  /* 修改：改為 position: fixed，並加上轉場動畫效果 */
+  .nav-menu { background: var(--white); border-bottom: 1px solid var(--border); display: flex; justify-content: center; flex-wrap: wrap; gap: 20px; padding: 0 5%; position: fixed; top: 70px; width: 100%; z-index: 900; transition: transform 0.3s ease, opacity 0.3s ease; }
+  
+  /* 新增：向下滾動時隱藏導覽列 */
+  body.scrolled .nav-menu {
+    transform: translateY(-100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* 新增：滑鼠懸浮在頂部 header 或導覽列本身時重新顯示 */
+  body.scrolled header:hover ~ .nav-menu,
+  body.scrolled .nav-menu:hover {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .nav-item { position: relative; padding: 15px 10px; cursor: pointer; font-weight: bold; color: var(--text-main); font-size: 15px; }
+  .nav-item:hover { color: var(--primary); }
+  
+  /* 第一層下拉選單 */
+  .nav-item .dropdown { display: none; position: absolute; top: 100%; left: 0; background: #5a4b41; min-width: 150px; box-shadow: var(--shadow); z-index: 1000; flex-direction: column; border-radius: 0 0 4px 4px; }
+  .nav-item:hover .dropdown { display: flex; animation: fadeIn 0.2s ease; }
+  .dropdown-item { position: relative; padding: 12px 20px; color: white; cursor: pointer; font-weight: normal; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+  .dropdown-item:last-child { border-bottom: none; }
+  .dropdown-item:hover { background: #453931; color: var(--primary-light); }
+
+  /* 第二層（子層）下拉選單 */
+  .sub-dropdown { display: none; position: absolute; top: 0; left: 100%; background: #453931; min-width: 160px; box-shadow: var(--shadow); z-index: 1001; flex-direction: column; border-radius: 4px; }
+  .dropdown-item:hover .sub-dropdown { display: flex; animation: fadeIn 0.2s ease; }
+  .sub-dropdown-item { position: relative; padding: 12px 20px; color: white; cursor: pointer; font-weight: normal; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+  .sub-dropdown-item:last-child { border-bottom: none; }
+  .sub-dropdown-item:hover { background: #352c25; color: var(--primary-light); }
+
+  /* 第三層（子子層）下拉選單 */
+  .sub-sub-dropdown { display: none; position: absolute; top: 0; left: 100%; background: #2a221d; min-width: 170px; box-shadow: var(--shadow); z-index: 1002; flex-direction: column; border-radius: 4px; }
+  .sub-dropdown-item:hover .sub-sub-dropdown { display: flex; animation: fadeIn 0.2s ease; }
+  .sub-sub-dropdown-item { position: relative; padding: 12px 20px; color: white; cursor: pointer; font-weight: normal; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+  .sub-sub-dropdown-item:last-child { border-bottom: none; }
+  .sub-sub-dropdown-item:hover { background: #1a1511; color: var(--primary-light); }
+
+  /* 第四層（子子子層）下拉選單 */
+  .sub-sub-sub-dropdown { display: none; position: absolute; top: 0; left: 100%; background: #110e0c; min-width: 160px; box-shadow: var(--shadow); z-index: 1003; flex-direction: column; border-radius: 4px; }
+  .sub-sub-dropdown-item:hover .sub-sub-sub-dropdown { display: flex; animation: fadeIn 0.2s ease; }
+  .sub-sub-sub-dropdown-item { padding: 12px 20px; color: white; cursor: pointer; font-weight: normal; text-align: left; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.05); display: block; }
+  .sub-sub-sub-dropdown-item:last-child { border-bottom: none; }
+  .sub-sub-sub-dropdown-item:hover { background: #000000; color: var(--primary-light); }
+
+  main { flex: 1; }
+  .view { display: none; padding: 20px 5%; min-height: calc(100vh - 150px); }
+  .view.active { display: block; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  
+  .grid-4 { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+  
+  /* 單排橫向捲動樣式 */
+  .row-scroll { display: flex; gap: 20px; overflow-x: auto; flex-wrap: nowrap; padding-bottom: 15px; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+  .row-scroll::-webkit-scrollbar { display: none; }
+  .row-scroll .card { flex: 0 0 calc(25% - 15px); min-width: 250px; }
+
+  .flex-layout { display: flex; gap: 20px; }
+  .main-content { flex: 1; overflow-x: auto; }
+
+  .card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: transform 0.2s; display: flex; flex-direction: column; position: relative; }
+  .card:hover { transform: translateY(-5px); }
+  .card-img { height: 200px; background: #EFEBE4; position: relative; cursor: pointer; }
+  .card-img img { width: 100%; height: 100%; object-fit: cover; }
+  .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+  .card-title { font-weight: bold; margin-bottom: 5px; font-size: 16px; cursor: pointer; }
+  .card-price { color: var(--danger); font-size: 18px; font-weight: bold; }
+  .card-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  
+  .btn { padding: 8px 15px; border-radius: var(--radius); cursor: pointer; font-size: 14px; text-align: center; display: inline-block; transition: 0.2s; }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-outline { border: 1px solid var(--primary); color: var(--primary); }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+  .form-group { margin-bottom: 15px; }
+  .form-group label { display: block; font-weight: bold; margin-bottom: 5px; font-size:14px;}
+  .ticket { background: #fff5e6; border: 2px dashed #f39c12; padding: 15px; border-radius: 8px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+  .policy-section { background:white; padding:20px; border-radius:var(--radius); margin-bottom:15px; border-left:4px solid var(--primary);}
+  .policy-section h3 { color:var(--primary); margin-bottom:10px; border-bottom:1px solid var(--border); padding-bottom:5px;}
+  
+  .chip { padding: 5px 12px; background: #fff; border:1px solid var(--border); border-radius: 15px; font-size: 13px; cursor: pointer; display:inline-block; }
+  .chip:hover { background: var(--primary); color: white; border-color:var(--primary); }
+
+  #toast-container { position: fixed; top: 80px; right: 20px; z-index: 2000; display: flex; flex-direction: column; gap: 10px; }
+  .toast { background: var(--primary); color: white; padding: 10px 20px; border-radius: var(--radius); box-shadow: var(--shadow); animation: slideIn 0.3s ease; }
+  @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+
+  #compare-bar { position: fixed; bottom: -100px; left: 20px; background: white; padding: 15px; border-radius: var(--radius); box-shadow: 0 -2px 10px rgba(0,0,0,0.1); transition: bottom 0.3s; z-index: 1000; border: 1px solid var(--primary); }
+  #compare-bar.show { bottom: 20px; }
+
+  /* 輪播圖 (Carousel) */
+  .carousel { position: relative; width: 100%; height: 350px; border-radius: var(--radius); overflow: hidden; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .carousel-inner { display: flex; transition: transform 0.6s cubic-bezier(0.25, 1, 0.5, 1); width: 100%; height: 100%; }
+  .carousel-item { min-width: 100%; height: 100%; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
+  .carousel-dots { position: absolute; bottom: 20px; width: 100%; display: flex; justify-content: center; gap: 10px; }
+  .carousel-dot { width: 10px; height: 10px; background: rgba(255,255,255,0.4); border-radius: 50%; cursor: pointer; transition: 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+  .carousel-dot.active { background: white; transform: scale(1.3); }
+  .banner-content { background: rgba(255,255,255,0.85); padding: 20px 40px; border-radius: var(--radius); text-align:center; animation: fadeIn 0.8s ease; }
+
+  .history-fab { 
+    position: fixed; 
+    right: 0; 
+    top: 50%; 
+    transform: translateY(-50%); 
+    writing-mode: vertical-rl; 
+    background: var(--white); 
+    color: var(--text-main); 
+    border: 1px solid var(--border); 
+    border-right: none; 
+    border-radius: 8px 0 0 8px; 
+    font-size: 13px; 
+    padding: 15px 6px; 
+    box-shadow: -2px 0 6px rgba(0,0,0,0.05); 
+    z-index: 1001; 
+    cursor: pointer; 
+    letter-spacing: 3px; 
+    transition: 0.2s; 
+  }
+  .history-fab:hover { background: #f1f1f1; }
+
+  .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index:9999; }
+  .modal-content { background: white; padding: 30px; border-radius: var(--radius); width: 100%; max-width: 500px; max-height: 90vh; overflow-y:auto; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+
+  .diff-highlight { background-color: #fff8e1; }
+  .diff-text { font-weight: bold; color: var(--danger); }
+
+  /* 店友的家 Gallery 樣式 */
+  .review-gallery { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0; scrollbar-width: none; -ms-overflow-style: none; scroll-behavior: smooth; }
+  .review-gallery::-webkit-scrollbar { display: none; }
+  .review-item { flex: 0 0 220px; cursor: pointer; position: relative; border-radius: 0px; overflow: hidden; background: #fff; border: 1px solid var(--border); transition: transform 0.2s; }
+  .review-item:hover { transform: translateY(-3px); }
+  .review-img-wrap { width: 100%; height: 220px; background: #eee; }
+  .review-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+  .review-user-info { display: flex; align-items: center; gap: 10px; padding: 12px; background: #f9f9f9; }
+  .review-avatar { width: 30px; height: 30px; border-radius: 50%; background: #ccc; display: flex; justify-content: center; align-items: center; color: white; font-size: 14px; font-weight: bold; overflow:hidden; }
+  .review-avatar img { width:100%; height:100%; object-fit:cover; }
+  .review-username { font-size: 13px; color: #555; }
+  
+  .gallery-arrow { position: absolute; top: calc(50% - 10px); transform: translateY(-50%); background: rgba(0,0,0,0.3); color: white; border: none; width: 45px; height: 45px; border-radius: 50%; font-size: 20px; cursor: pointer; z-index: 10; display: flex; align-items: center; justify-content: center; transition: 0.3s; box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+  .gallery-arrow:hover { background: rgba(0,0,0,0.6); }
+  .gallery-arrow.left { left: -10px; }
+  .gallery-arrow.right { right: -10px; }
+
+  @media (max-width: 768px) { 
+    .flex-layout { flex-direction: column; } 
+    .sidebar { width: 100% !important; } 
+    .search-bar { display: none; } 
+    #review-detail-modal .modal-content { flex-direction: column; max-height: 90vh; overflow-y:auto; }
+    #review-detail-modal .modal-content > div:first-child { min-height: 300px; flex:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <a href="#" onclick="app.navigate('home')" style="display: flex; align-items: center;">
+      <img src="image/logo.png" alt="CHG 傢俱" style="height: 100px; width: auto; object-fit: contain;">
+    </a>
+  </div>
+  <div class="search-bar" style="display:flex; gap:10px; align-items:center;">
+    <input type="text" id="searchInput" placeholder="輸入家具類型或風格..." aria-label="搜尋家具" style="flex:1;">
+    <button class="icon-btn" onclick="app.openAIModal()">智慧助理</button>
+  </div>
+  <div class="header-actions">
+    <button class="icon-btn" onclick="window.open('backstage.html', '_blank')">⚙️ 後台</button>
+    <button class="icon-btn" onclick="app.navigate('member')">👤 會員</button>
+    <button class="icon-btn" onclick="app.navigate('compare')">⚖️ 比較 <span class="badge" id="compare-badge">0</span></button>
+    <button class="icon-btn" onclick="app.navigate('cart')">🛒 購物車 <span class="badge" id="cart-badge">0</span></button>
+  </div>
+</header>
+
+<div class="nav-menu">
+  <div class="nav-item">空間佈置
+    <div class="dropdown">
+      
+      <div class="dropdown-item">客廳 <span>▶</span>
+        <div class="sub-dropdown">
+          <span class="sub-dropdown-item" onclick="app.search('客廳')">全部客廳家具</span>
+          <div class="sub-dropdown-item">沙發 <span>▶</span>
+            <div class="sub-sub-dropdown">
+              <span class="sub-sub-dropdown-item" onclick="app.search('沙發')">全部沙發家具</span>
+              <div class="sub-sub-dropdown-item">布沙發 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人布沙發')">單人布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人布沙發')">雙人布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('三人布沙發')">三人布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('L型布沙發')">L型布沙發</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">皮沙發 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人皮沙發')">單人皮沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人皮沙發')">雙人皮沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('三人皮沙發')">三人皮沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('L型皮沙發')">L型皮沙發</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">木沙發 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人木沙發')">單人木沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人木沙發')">雙人木沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('三人木沙發')">三人木沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('L型木沙發')">L型木沙發</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">貓抓布沙發 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人貓抓布沙發')">單人貓抓布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人貓抓布沙發')">雙人貓抓布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('三人貓抓布沙發')">三人貓抓布沙發</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('L型貓抓布沙發')">L型貓抓布沙發</span>
+                </div>
+              </div>              
+            </div>
+          </div>
+          <span class="sub-dropdown-item" onclick="app.search('電視櫃')">電視櫃</span>
+          <span class="sub-dropdown-item" onclick="app.search('茶几')">茶几</span>
+        </div>
+      </div>
+      
+      <div class="dropdown-item">臥室 <span>▶</span>
+        <div class="sub-dropdown">
+          <span class="sub-dropdown-item" onclick="app.search('臥室')">全部臥室家具</span>
+          <div class="sub-dropdown-item">床墊 <span>▶</span>
+            <div class="sub-sub-dropdown">
+              <span class="sub-sub-dropdown-item" onclick="app.search('床墊')">全部床墊家具</span>
+              <div class="sub-sub-dropdown-item">單人床墊 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人乳膠床墊')">乳膠床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人偏硬床墊')">偏硬床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人偏軟床墊')">偏軟床墊</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">單人加大床墊 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人加大乳膠床墊')">乳膠床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人加大偏硬床墊')">偏硬床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('單人加大偏軟床墊')">偏軟床墊</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">雙人床墊 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人乳膠床墊')">乳膠床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人偏硬床墊')">偏硬床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人偏軟床墊')">偏軟床墊</span>
+                </div>
+              </div>
+              <div class="sub-sub-dropdown-item">雙人加大床墊 <span>▶</span>
+                <div class="sub-sub-sub-dropdown">
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人加大乳膠床墊')">乳膠床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人加大偏硬床墊')">偏硬床墊</span>
+                  <span class="sub-sub-sub-dropdown-item" onclick="app.search('雙人加大偏軟床墊')">偏軟床墊</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <span class="sub-dropdown-item" onclick="app.search('衣櫃')">衣櫃</span>
+          <span class="sub-dropdown-item" onclick="app.search('化妝台')">化妝台</span>
+        </div>
+      </div>
+      
+      <div class="dropdown-item">書房 <span>▶</span>
+        <div class="sub-dropdown">
+          <span class="sub-dropdown-item" onclick="app.search('書房')">全部書房家具</span>
+          <span class="sub-dropdown-item" onclick="app.search('書桌')">書桌</span>
+          <span class="sub-dropdown-item" onclick="app.search('書櫃')">書櫃</span>
+          <span class="sub-dropdown-item" onclick="app.search('電腦椅')">電腦椅</span>
+        </div>
+      </div>
+      
+      <div class="dropdown-item">餐廳 <span>▶</span>
+        <div class="sub-dropdown">
+          <span class="sub-dropdown-item" onclick="app.search('餐廳')">全部餐廳家具</span>
+          <span class="sub-dropdown-item" onclick="app.search('餐桌')">餐桌</span>
+          <span class="sub-dropdown-item" onclick="app.search('餐椅')">餐椅</span>
+          <span class="sub-dropdown-item" onclick="app.search('餐邊櫃')">餐邊櫃</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-item" onclick="window.open('3D.html', '_blank')">AR空間模擬</div>
+  <div class="nav-item" onclick="app.navigate('about')">品牌理念</div>
+  <div class="nav-item" onclick="app.navigate('contact')">聯絡我們</div>
+  <div class="nav-item">顧客服務
+    <div class="dropdown">
+      <span class="dropdown-item" onclick="app.navigate('faq')">常見問答 (Q&A)</span>
+      <span class="dropdown-item" onclick="app.navigate('policy')">購物須知</span>
+    </div>
+  </div>
+</div>
+
+<main id="app">
+  <div id="view-home" class="view">
+    <div class="carousel" id="home-carousel">
+       <div class="carousel-inner" id="carousel-inner">
+          <div class="carousel-item active" style="background: url('https://images.unsplash.com/photo-1524758631624-e2822e304c36?auto=format&fit=crop&w=1200&q=80') center/cover;">
+             <div class="banner-content">
+               <h2 style="color: var(--primary); font-size: 28px; margin:0;">新居落成 成家專案</h2>
+               <p style="margin-top:5px; color:var(--text-muted);">註冊會員即送 50 點購物金，再享專屬折價券！</p>
+             </div>
+          </div>
+          <div class="carousel-item" style="background: url('https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1200&q=80') center/cover;">
+             <div class="banner-content">
+               <h2 style="color: var(--primary); font-size: 28px; margin:0;">防潑水 × 防貓抓沙發</h2>
+               <p style="margin-top:5px; color:var(--text-muted);">滿 10,000 折 1,000，養寵族的最愛推薦！</p>
+             </div>
+          </div>
+          <div class="carousel-item" style="background: url('https://images.unsplash.com/photo-1505691938895-1758d7feb511?auto=format&fit=crop&w=1200&q=80') center/cover;">
+             <div class="banner-content">
+               <h2 style="color: var(--primary); font-size: 28px; margin:0;">收納隱形術</h2>
+               <p style="margin-top:5px; color:var(--text-muted);">完美融入居家風格的收納好物，擁有家的儀式感。</p>
+             </div>
+          </div>
+       </div>
+       <div class="carousel-dots">
+          <span class="carousel-dot active" onclick="app.goToSlide(0)"></span>
+          <span class="carousel-dot" onclick="app.goToSlide(1)"></span>
+          <span class="carousel-dot" onclick="app.goToSlide(2)"></span>
+       </div>
+    </div>
+
+    <h3 style="text-align: center;">🏆 熱銷單品榜 (TOP 5)</h3>
+    <div class="row-scroll" id="home-bestsellers" style="margin-top: 15px;"></div>
+    
+    <div style="text-align: center; margin-top: 50px;">
+      <h3 style="font-size: 24px; margin-bottom: 20px;">物超所值</h3>
+      <div style="display: flex; justify-content: center; gap: 30px; margin-bottom: 20px;" id="value-tabs">
+        <span class="value-tab" onclick="app.switchValueTab('新品推薦')" style="cursor:pointer; padding-bottom: 5px; color: #999; border-bottom: 2px solid transparent;">新品推薦</span>
+        <span class="value-tab" onclick="app.switchValueTab('沙發推薦')" style="cursor:pointer; padding-bottom: 5px; color: #999; border-bottom: 2px solid transparent;">沙發推薦</span>
+        <span class="value-tab" onclick="app.switchValueTab('床墊推薦')" style="cursor:pointer; padding-bottom: 5px; color: #999; border-bottom: 2px solid transparent;">床墊推薦</span>
+      </div>
+    </div>
+    <div class="row-scroll" id="home-value-recommend" style="margin-top: 15px;"></div>
+    
+    <div style="text-align: center; margin-top: 50px;">
+      <h3 style="font-size: 24px; margin-bottom: 20px;">你可能會喜歡</h3>
+    </div>
+    <div class="row-scroll" id="home-you-may-like" style="margin-top: 15px;"></div>
+
+    <div style="text-align: center; margin-top: 50px;">
+      <h3 style="font-size: 24px; margin-bottom: 20px;">店友的家</h3>
+    </div>
+    <div style="position: relative;">
+      <button class="gallery-arrow left" onclick="app.scrollGallery(-1)">&#10094;</button>
+      <div class="review-gallery" id="home-buyer-reviews"></div>
+      <button class="gallery-arrow right" onclick="app.scrollGallery(1)">&#10095;</button>
+    </div>
+    
+  </div>
+
+  <div id="view-list" class="view">
+    <div class="flex-layout">
+      <aside class="sidebar" style="width: 260px; flex-shrink: 0; background: white; padding: 25px 20px; border-radius: var(--radius); box-shadow: var(--shadow); align-self: flex-start;">
+        <h3 style="margin-bottom: 20px; border-bottom: 2px solid var(--primary); padding-bottom: 10px; color:var(--primary); font-size:18px;">進階篩選</h3>
+        
+        <div style="margin-bottom: 25px;">
+          <h4 style="margin-bottom: 12px; font-size: 15px; color:#444;">風格設計</h4>
+          <select id="filter-style-select" onchange="app.renderList()">
+            <option value="">全部風格</option>
+            <option value="北歐風">北歐風</option>
+            <option value="工業風">工業風</option>
+            <option value="極簡風">極簡風</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <h4 style="margin-bottom: 12px; font-size: 15px; color:#444;">尺寸(寬)</h4>
+          <select id="filter-width-select" onchange="app.renderList()">
+            <option value="">全部尺寸</option>
+            <option value="<100">100cm 以下</option>
+            <option value="100-160">100cm - 160cm</option>
+            <option value=">160">160cm 以上</option>
+          </select>
+        </div>
+
+        <div style="margin-bottom: 25px;">
+          <h4 style="margin-bottom: 12px; font-size: 15px; color:#444;">價格區間</h4>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <input type="number" id="filter-min-price" placeholder="最低" style="width:100%; padding:6px;" oninput="app.renderList()">
+            <span style="color:#aaa;">-</span>
+            <input type="number" id="filter-max-price" placeholder="最高" style="width:100%; padding:6px;" oninput="app.renderList()">
+          </div>
+        </div>
+        
+        <button class="btn btn-outline" style="width:100%; margin-top:10px;" onclick="app.clearFilters()">重置所有篩選</button>
+      </aside>
+
+      <div class="main-content">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border);">
+          <h3 style="margin:0;" id="list-title">商品列表</h3>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <label style="font-size:14px; font-weight:bold; color:var(--text-muted);">排序方式</label>
+            <select id="sort-select" onchange="app.renderList()" style="width:auto; padding:5px 10px; font-size:14px;">
+              <option value="default">預設排序</option>
+              <option value="price-asc">價格：由低到高</option>
+              <option value="price-desc">價格：由高到低</option>
+              <option value="sales">熱銷商品</option>
+              <option value="newest">最新上架</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-4" id="product-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-detail" class="view"><div id="detail-content"></div></div>
+
+  <div id="view-about" class="view">
+    <div style="font-size:14px; color:#555; margin-bottom:20px; display:flex; gap:8px; align-items:center;">
+      <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.navigate('home')">🏠 首頁</a> &gt; <span style="color:#999;">品牌理念</span>
+    </div>
+    <div style="background: url('https://images.unsplash.com/photo-1556228453-efd6c1ff04f6?auto=format&fit=crop&w=1200&q=80') center/cover; height: 300px; border-radius: 8px; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden;">
+      <div style="position:absolute; width:100%; height:100%; background:rgba(0,0,0,0.4);"></div>
+      <h2 style="color:white; font-size:36px; letter-spacing:4px; z-index:1; text-shadow: 0 4px 8px rgba(0,0,0,0.6);">關於我們 / 品牌理念</h2>
+    </div>
+    <div style="background:white; padding:40px; border-radius:8px; margin-top:-30px; position:relative; z-index:2; box-shadow:0 10px 20px rgba(0,0,0,0.08); line-height:2.2; max-width:900px; margin-left:auto; margin-right:auto;">
+      <h3 style="color:var(--primary); margin-bottom:20px; text-align:center; font-size:24px;">「為生活留白，為質感停留」</h3>
+      <p style="text-align:justify; font-size:16px; color:#555;">CHG 好室選物，創立於對美好生活的嚮往。我們相信，家不僅僅是一個居住的空間，更是反映個人品味與生活態度的避風港。我們致力於嚴選國內外優質的設計家具，將美學與機能完美結合。</p>
+      <p style="text-align:justify; font-size:16px; color:#555; margin-top:15px;">無論是溫暖的北歐風、個性的工業風，還是純粹的極簡風，我們都為您精心挑選。我們堅持提供高品質、價格合理的居家商品，確保每一件交到您手中的家具，都能經得起時間的考驗，讓每一位顧客都能輕鬆打造心目中的理想好室。</p>
+    </div>
+  </div>
+
+  <div id="view-contact" class="view">
+    <div style="font-size:14px; color:#555; margin-bottom:20px; display:flex; gap:8px; align-items:center;">
+      <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.navigate('home')">🏠 首頁</a> &gt; <span style="color:#999;">聯絡我們</span>
+    </div>
+    <h2 style="margin-bottom: 25px; color:var(--primary); text-align:center;">聯絡我們</h2>
+    
+    <div class="grid-4" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:20px;">
+      <div style="background:white; padding:30px; border-radius:12px; box-shadow:var(--shadow); border-top:5px solid #3498db;">
+        <h3 style="color:#3498db; margin-bottom:20px; font-size:20px; display:flex; align-items:center; gap:8px;">💬 官方客服資訊</h3>
+        <p style="font-size:15px; color:#555;"><strong>✉️ 客服信箱：</strong> service@chg-home.com</p>
+        <p style="font-size:15px; color:#555; margin-top:15px;"><strong>📱 官方 LINE ID：</strong> <span style="color:#2ecc71; font-weight:bold;">@chg_home</span> (含@)</p>
+        <p style="font-size:15px; color:#555; margin-top:15px;"><strong>🕒 服務時間：</strong> 週一至週五 09:00 - 18:00<br><span style="font-size:13px; color:#888; margin-left:25px;">(國定假日暫停客服服務)</span></p>
+      </div>
+      
+      <div style="background:white; padding:30px; border-radius:12px; box-shadow:var(--shadow); border-top:5px solid #2ecc71;">
+        <h3 style="color:#2ecc71; margin-bottom:20px; font-size:20px; display:flex; align-items:center; gap:8px;">🏦 官方匯款資訊</h3>
+        <p style="font-size:15px; color:#555;"><strong>銀行名稱：</strong> 808 (玉山銀行)</p>
+        <p style="font-size:15px; color:#555; margin-top:15px;"><strong>分行名稱：</strong> 營業部</p>
+        <p style="font-size:15px; color:#555; margin-top:15px;"><strong>匯款帳號：</strong> <strong style="font-size:18px; color:#333;">1234-567-890123</strong></p>
+        <p style="font-size:15px; color:#555; margin-top:15px;"><strong>戶名：</strong> 好室選物股份有限公司</p>
+      </div>
+    </div>
+
+    <div style="background:#fff5e6; padding:30px; border-radius:12px; box-shadow:var(--shadow); margin-top:30px; border-left:6px solid #f39c12;">
+       <h3 style="color:#d35400; margin-bottom:20px; display:flex; align-items:center; gap:8px;">💡 貼心告知事項</h3>
+       <ul style="color:#555; font-size:15px; margin-left:20px; list-style-type:disc; line-height:2;">
+         <li>匯款完成後，請務必透過官方 LINE 或會員中心的「訂單通訊」回報您的<strong style="color:#d35400;">匯款帳號後五碼</strong>，以便加速對帳與出貨流程。</li>
+         <li>大型家具配送需安排專車，客服人員將於訂單成立並付款完成後 <strong style="color:#d35400;">1-3 個工作天內</strong>與您聯繫確認配送時間。</li>
+         <li>如遇商品缺貨或不可抗力之特殊狀況，我們將第一時間主動通知您，並提供無條件換貨或全額退款服務。</li>
+         <li><strong style="color:var(--danger);">⚠️ 防詐騙提醒：</strong>我們絕對不會主動要求您前往 ATM 進行任何「分期付款解除」、「會員升級」或「退款」操作。若接到可疑電話，請立即掛斷並撥打 165 反詐騙專線。</li>
+       </ul>
+    </div>
+  </div>
+
+  <div id="view-faq" class="view">
+    <div style="font-size:14px; color:#555; margin-bottom:20px; display:flex; gap:8px; align-items:center;">
+      <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.navigate('home')">🏠 首頁</a> &gt; <span>顧客服務</span> &gt; <span style="color:#999;">常見問答 (Q&A)</span>
+    </div>
+    <h2 style="margin-bottom:20px; color:var(--primary);">💬 常見問答 (Q&A)</h2>
+    <div style="background:#fff; border:1px solid var(--border); border-radius:8px; padding:20px;">
+      <div style="margin-bottom:15px; border-bottom:1px dashed var(--border); padding-bottom:10px;">
+        <div style="font-weight:bold; color:var(--primary);">Q: 購買後如果發現尺寸不合可以退換嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 享有七天鑑賞期（非試用期），保持包裝完整無損毀即可申請退換貨，但可能酌收部分整新與物流費用。</div>
+      </div>
+      <div style="margin-bottom:15px; border-bottom:1px dashed var(--border); padding-bottom:10px;">
+        <div style="font-weight:bold; color:var(--primary);">Q: 商品需要自行組裝嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 絕大多數大型家具將由我們的專業物流團隊為您到府定位組裝，免收額外安裝費。</div>
+      </div>
+      <div>
+        <div style="font-weight:bold; color:var(--primary);">Q: 請問有實體店面可以看實品嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 目前我們為全線上商城，以此將最優惠的價格回饋給顧客，暫無提供實體展間服務。</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-cart" class="view">
+    <h2>購物車</h2>
+    <div class="flex-layout" style="margin-top: 20px;">
+      <div class="main-content" id="cart-items"></div>
+      <aside class="sidebar">
+        <h3>訂單摘要</h3>
+        <div id="cart-summary" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px;"></div>
+        <!-- 💡 新增：滿額免運提示 -->
+        <div style="margin-top: 10px; font-size: 14px; color: var(--success); font-weight: bold; text-align: center;">💡 滿 $15,000 享有免運</div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="app.navigate('checkout')">前往結帳</button>
+      </aside>
+    </div>
+  </div>
+
+  <div id="view-compare" class="view">
+    <h2>商品比較 (詳細規格比較)</h2>
+    <div id="compare-content" style="margin-top: 20px; overflow-x: auto; background:white; border-radius:var(--radius); padding:15px; box-shadow:var(--shadow);"></div>
+  </div>
+
+  <div id="view-policy" class="view">
+    <div style="font-size:14px; color:#555; margin-bottom:20px; display:flex; gap:8px; align-items:center;">
+      <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.navigate('home')">🏠 首頁</a> &gt; <span>顧客服務</span> &gt; <span style="color:#999;">購物須知與服務說明</span>
+    </div>
+    <h2>📖 購物須知與服務說明</h2>
+    <div style="margin-top:20px;">
+      <div class="policy-section"><h3>🚚 配送與跨境購物</h3><p>台灣本島滿 $15,000 享免運。提供跨境配送至港澳星馬地區，運費依材積另計，約7-14天送達。</p></div>
+      <div class="policy-section"><h3>💳 促銷機制與分期付款</h3><p>消費每滿 $100 贈 1 點。提供信用卡 3/6/12 期零利率分期服務。</p></div>
+      <div class="policy-section"><h3>🔄 退換貨與保固維修</h3><p>全站家具皆享 1 年保固。收到商品七日內可至「我的訂單」申請退換貨，需保持包裝完整無損。</p></div>
+      <div class="policy-section"><h3>🧾 發票處理</h3><p>全面開立電子發票。支援手機條碼載具與公司戶三聯式統編發票。</p></div>
+    </div>
+  </div>
+
+  <div id="view-checkout" class="view">
+    <h2>填寫資料與結帳</h2>
+    <div class="flex-layout" style="margin-top: 20px;">
+      <div class="main-content">
+        <form id="checkout-form" onsubmit="app.submitOrder(event)" style="background: white; padding: 20px; border-radius: var(--radius);">
+          <h3>1. 收件資訊</h3>
+          <div class="form-group" style="margin-top:15px;">
+            <label>配送區域 (運費計算)</label>
+            <select id="chk-region" onchange="app.updateCheckoutSummary()">
+              <option value="0">雙北、桃園、基隆、宜蘭、新竹、台中、彰化 (免運)</option>
+              <option value="1000">苗栗、雲林、南投 (運費 $1,000)</option>
+              <option value="1800">嘉義、台南、高雄、屏東 (運費 $1,800)</option>
+            </select>
+          </div>
+          <div class="form-group"><label>收件人姓名</label><input type="text" id="chk-name" required></div>
+          <div class="form-group"><label>詳細地址</label><input type="text" id="chk-address" required placeholder="請填寫完整地址 (例: 信義區松智路1號)"></div>
+          
+          <h3 style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">2. 付款與發票</h3>
+          
+          <div class="form-group" style="margin-top:15px;">
+            <label>付款方式</label>
+            
+            <div style="margin-bottom: 10px; display: flex; gap: 15px;">
+              <label style="cursor:pointer; font-size:15px; font-weight:bold; color:#333; display:flex; align-items:center;">
+                <input type="radio" name="payment-method" id="pay-cc" value="credit-card" checked onchange="app.togglePaymentMethod()" style="width:auto; margin-right:5px;"> 信用卡付款
+              </label>
+              <label style="cursor:pointer; font-size:15px; font-weight:bold; color:#333; display:flex; align-items:center;">
+                <input type="radio" name="payment-method" id="pay-bank" value="bank-transfer" onchange="app.togglePaymentMethod()" style="width:auto; margin-right:5px;"> 銀行轉帳
+              </label>
+            </div>
+            
+            <label id="installment-label" style="display:inline-flex; align-items:center; cursor:pointer; font-weight:normal; font-size:14px; margin-bottom:10px;">
+              <input type="checkbox" id="chk-installment" onchange="app.toggleInstallment()" style="width:auto; margin-right:8px;"> 
+              使用信用卡分期 (0 利率)
+            </label>
+            
+            <div id="installment-options" style="display:none; margin-top:5px; margin-bottom: 15px; padding:15px; background:#f9f9f9; border-radius:8px; border:1px solid var(--border);">
+              <label>選擇期數</label>
+              <select id="installment-select" onchange="app.updateCheckoutSummary()">
+                <option value="3">3 期 0 利率</option>
+                <option value="6">6 期 0 利率</option>
+                <!-- 💡 新增：12期分期選項 -->
+                <option value="12">12 期 0 利率</option>
+              </select>
+            </div>
+            
+            <div id="payment-info" style="color:var(--danger); font-size:14px; margin-top:5px; font-weight:bold;"></div>
+          </div>
+          
+          <div id="credit-card-info" style="background:#f9f9f9; padding:15px; border-radius:8px; margin-bottom:15px; border:1px solid var(--border);">
+            <div class="form-group">
+              <label>信用卡號</label>
+              <input type="text" id="cc-number" placeholder="XXXX-XXXX-XXXX-XXXX" required>
+            </div>
+            <div style="display:flex; gap:10px;">
+               <div class="form-group" style="flex:1;">
+                 <label>有效期限</label>
+                 <input type="text" id="cc-exp" placeholder="MM/YY" required>
+               </div>
+               <div class="form-group" style="flex:1;">
+                 <label>安全碼 (CVV)</label>
+                 <input type="text" id="cc-cvv" placeholder="123" required>
+               </div>
+            </div>
+          </div>
+
+          <div id="bank-transfer-info" style="display:none; background:#f9f9f9; padding:20px; border-radius:8px; margin-bottom:15px; border:1px solid var(--border); border-top: 4px solid #2ecc71;">
+            <h4 style="color:#2ecc71; margin-bottom:15px; font-size:18px; display:flex; align-items:center; gap:8px;">🏦 官方匯款資訊</h4>
+            <p style="font-size:15px; color:#555; margin-bottom:10px;"><strong>銀行名稱：</strong> 808 (玉山銀行)</p>
+            <p style="font-size:15px; color:#555; margin-bottom:10px;"><strong>分行名稱：</strong> 營業部</p>
+            <p style="font-size:15px; color:#555; margin-bottom:10px;"><strong>匯款帳號：</strong> <strong style="font-size:18px; color:#333;">1234-567-890123</strong></p>
+            <p style="font-size:15px; color:#555; margin-bottom:0;"><strong>戶名：</strong> 好室選物股份有限公司</p>
+          </div>
+          
+          <div class="form-group"><label>發票開立</label><select id="chk-invoice" onchange="app.toggleInvoiceInput()"><option value="會員載具">會員載具 (雲端發票)</option><option value="手機條碼載具">手機條碼載具</option><option value="公司三聯式發票">公司三聯式發票 (需填統編)</option></select></div>
+          <div class="form-group" id="invoice-detail-group" style="display:none;"><label id="invoice-detail-label">手機條碼</label><input type="text" id="chk-invoice-detail" placeholder="請填寫條碼或統編"></div>
+
+          <h3 style="margin-top:20px; border-top:1px solid var(--border); padding-top:20px;">3. 會員專屬優惠</h3>
+          <div class="form-group" style="margin-top:15px;"><label>選擇折價券</label><select id="chk-coupon" onchange="app.updateCheckoutSummary()"></select></div>
+          <div class="form-group"><label>使用點數折抵 (目前 <span id="chk-max-points" style="color:var(--danger); font-weight:bold;">0</span> 點)</label><input type="number" id="chk-points" min="0" value="0" oninput="app.updateCheckoutSummary()"></div>
+          
+          <button type="submit" class="btn btn-danger" style="width: 100%; margin-top:20px; font-size:18px; padding:12px;">確認結帳送出</button>
+        </form>
+      </div>
+      <aside class="sidebar"><h3>結帳明細</h3><div id="chk-summary-text" style="margin-top: 15px; border-top: 1px solid var(--border); padding-top: 15px; line-height:2;"></div></aside>
+    </div>
+  </div>
+
+  <div id="view-member" class="view">
+    <h2>會員中心</h2>
+    <div id="member-login" style="margin-top: 20px; background: white; padding: 30px; border-radius: var(--radius); max-width: 450px; box-shadow:var(--shadow);">
+      <h3 style="margin-bottom:15px; color:var(--primary); text-align:center;">帳號登入 / 免費註冊</h3>
+      <div class="form-group"><label>Email</label><input type="email" id="login-email" placeholder="example@mail.com" required></div>
+      <div class="form-group"><label>登入密碼</label><input type="password" id="login-pw" placeholder="請輸入密碼" required></div>
+      <button class="btn btn-primary" onclick="app.login()" style="width:100%; padding:10px; font-size:16px;">登入 / 註冊</button>
+    </div>
+    
+    <div id="member-dashboard" style="display: none; margin-top: 20px;">
+      <div class="flex-layout">
+        <div class="sidebar" style="width: 300px; background:var(--primary-light);">
+          <h3 style="color:var(--primary);"><span id="user-email-display"></span></h3>
+          <p style="margin-top:10px;">目前點數：<strong style="font-size:24px; color:var(--danger);" id="mem-points">0</strong> 點</p>
+          <div id="mem-checkin-btn-area"></div>
+          <button class="btn btn-outline" style="width:100%; margin-top:10px; background:white;" onclick="app.logout()">登出帳號</button>
+        </div>
+
+        <div class="main-content">
+          <h3 style="margin-bottom:15px;">🎟️ 領券專區</h3>
+          <div id="mem-claim-coupons"></div>
+          
+          <h3 style="margin:25px 0 15px 0;">我的折價券</h3>
+          <div id="mem-coupons" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+
+          <h3 style="margin:30px 0 15px 0;">我的訂單</h3>
+          <div id="order-history"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer style="background: var(--white); padding: 40px 5%; margin-top: auto; border-top: 1px solid var(--border); box-shadow: 0 -2px 10px rgba(0,0,0,0.02); z-index: 10;">
+  <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 30px; max-width: 1200px; margin: 0 auto;">
+    <div style="flex: 1; min-width: 250px;">
+      <h3 style="color: var(--primary); margin-bottom: 15px; font-size: 24px;">CHG 好室選物</h3>
+      <p style="color: var(--text-muted); font-size: 14px; line-height: 1.8;">打造專屬您的質感居家生活。<br>嚴選國內外優質設計家具，為您的每一天注入美好。</p>
+    </div>
+    <div style="flex: 1; min-width: 200px;">
+      <h4 style="margin-bottom: 15px; color:var(--text-main);">聯絡我們</h4>
+      <p style="font-size: 14px; color: var(--text-muted); line-height: 1.8;">
+        📞 客服專線：0800-123-456<br>
+        ✉️ 客服信箱：service@chg-home.com<br>
+        🕒 服務時間：週一至週五 09:00 - 18:00
+      </p>
+    </div>
+    <div style="flex: 1; min-width: 200px;">
+      <h4 style="margin-bottom: 15px; color:var(--text-main);">關注我們</h4>
+      <div style="display: flex; gap: 10px;">
+        <a href="#" style="display: inline-block; background: #3b5998; color: white; padding: 8px 15px; border-radius: 4px; font-size: 14px;">Facebook</a>
+        <a href="#" style="display: inline-block; background: #e1306c; color: white; padding: 8px 15px; border-radius: 4px; font-size: 14px;">Instagram</a>
+        <a href="#" style="display: inline-block; background: #00c300; color: white; padding: 8px 15px; border-radius: 4px; font-size: 14px;">LINE 官方帳號</a>
+      </div>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 13px; color: #aaa;">
+    &copy; 2026 CHG 好室選物 All Rights Reserved.
+  </div>
+</footer>
+
+<button class="history-fab" onclick="app.openHistoryModal()">歷史紀錄</button>
+<div id="history-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 400px; padding: 20px;">
+    <h3 style="margin-bottom: 15px; color:var(--primary); display:flex; align-items:center; justify-content:space-between;">
+      歷史瀏覽紀錄
+      <button style="font-size:20px; color:#999;" onclick="document.getElementById('history-modal').style.display='none'">✖</button>
+    </h3>
+    <div id="history-list" style="max-height: 350px; overflow-y: auto; display:flex; flex-direction:column; gap:10px;"></div>
+    <button class="btn btn-outline" style="width:100%; margin-top:15px;" onclick="app.clearHistory()">清除所有紀錄</button>
+  </div>
+</div>
+
+<div id="ai-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 500px; padding: 20px;">
+    <h3 style="margin-bottom: 15px; color:var(--primary); display:flex; align-items:center; justify-content:space-between;">
+      智慧推薦助理
+      <button style="font-size:20px; color:#999;" onclick="document.getElementById('ai-modal').style.display='none'">✖</button>
+    </h3>
+    <div id="ai-chat-box" style="height: 320px; overflow-y: auto; background: #f4f6f8; padding: 15px; border-radius: 8px; margin-bottom: 15px; font-size:14px; line-height:1.6;">
+      <div style="margin-bottom: 15px; display:flex; gap:10px;">
+        <div style="background:white; padding:12px 15px; border-radius:15px 15px 15px 0; box-shadow:var(--shadow); border-left:3px solid var(--primary);"><strong>AI 助理：</strong><br>您好！我是 CHG 智慧助理。請問今天想找什麼樣的家具呢？我可以根據您的預算、風格或空間為您精準推薦。</div>
+      </div>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px;">
+      <span class="chip" onclick="app.askAI('推薦北歐風客廳')">推薦北歐風客廳</span>
+      <span class="chip" onclick="app.askAI('預算 10000 內的床墊')">預算 1萬內床墊</span>
+      <span class="chip" onclick="app.askAI('適合小坪數的收納')">小坪數收納</span>
+    </div>
+    <div style="display:flex; gap:10px;">
+      <input type="text" id="ai-input" placeholder="輸入您的需求 (如：想找預算5千的木質茶几)..." onkeypress="if(event.key==='Enter') app.askAI()">
+      <button class="btn btn-primary" onclick="app.askAI()">送出</button>
+    </div>
+  </div>
+</div>
+
+<div id="return-modal" class="modal-overlay">
+  <div class="modal-content">
+    <h3 style="margin-bottom: 20px; color:var(--danger);">📦 申請退換貨</h3>
+    <form onsubmit="app.submitReturn(event)">
+      <input type="hidden" id="rtn-order-id">
+      <div class="form-group">
+        <label>退換貨原因</label>
+        <select id="rtn-reason" required>
+          <option value="商品瑕疵或損壞">商品瑕疵或損壞</option><option value="尺寸不合">尺寸不合</option><option value="送錯商品">送錯商品</option><option value="實品與照片落差大">實品與照片落差大</option><option value="其他原因">其他原因</option>
+        </select>
+      </div>
+      <div class="form-group"><label>詳細說明 (選填)</label><textarea id="rtn-detail" rows="3" placeholder="請簡述您的情況..."></textarea></div>
+      <div class="form-group"><label>上傳商品照片</label><input type="file" id="rtn-img" accept="image/*" capture="environment"></div>
+      <div style="text-align:right; margin-top:20px;">
+        <button type="button" class="btn btn-outline" onclick="document.getElementById('return-modal').style.display='none'">取消</button>
+        <button type="submit" class="btn btn-danger" style="margin-left:10px;">送出申請</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="review-detail-modal" class="modal-overlay">
+  <div class="modal-content" style="max-width: 850px; padding: 0; display: flex; overflow: hidden; background: #fff; border-radius:8px;">
+    <div style="flex: 1.5; background: #000; display:flex; align-items:center; justify-content:center; position:relative;">
+       <img id="modal-review-img" src="" style="width:100%; height:100%; max-height: 600px; object-fit:cover;">
+    </div>
+    <div style="flex: 1; padding: 30px; display: flex; flex-direction: column; background: #fff; position: relative;">
+      <button style="position:absolute; top:15px; right:15px; font-size:24px; color:#999; background:none; border:none; cursor:pointer;" onclick="document.getElementById('review-detail-modal').style.display='none'">✖</button>
+      
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+         <div id="modal-review-avatar" class="review-avatar"></div>
+         <span id="modal-review-username" class="review-username" style="font-weight:bold; font-size:15px; color:#333;"></span>
+      </div>
+      
+      <div id="modal-review-text" style="font-size: 15px; color: #444; line-height: 1.8; margin-bottom: 30px; flex:1;"></div>
+      
+      <div style="border-top: 1px solid var(--border); padding-top: 20px; margin-top: auto;">
+         <div style="display:flex; gap:15px; align-items:center;" id="modal-review-product-link">
+            <img id="modal-review-product-img" src="" style="width:80px; height:80px; object-fit:cover; border-radius:4px; border:1px solid #eee;">
+            <div>
+               <div id="modal-review-product-name" style="font-size: 14px; color:#555; margin-bottom:5px;"></div>
+               <div id="modal-review-product-price" style="font-size: 16px; color:var(--text-main); font-weight:bold;"></div>
+            </div>
+         </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="compare-bar">
+  <span>已選擇 <strong id="compare-count">0</strong>/4 件商品進行比較</span>
+  <button class="btn btn-primary" style="margin-left: 15px;" onclick="app.navigate('compare')">查看比較</button>
+  <button class="btn btn-outline" style="margin-left: 5px;" onclick="app.clearCompare()">清空</button>
+</div>
+<div id="toast-container"></div>
+
+<script>
+const DB = { products: [] };
+
+async function initializeProducts() {
+  try {
+    window.dbAPI.listenProducts((cloudProducts) => {
+      DB.products = cloudProducts || [];
+      
+      if (app.state.view === 'list') app.renderList();
+      if (app.state.view === 'home') app.renderHome();
+      if (app.state.view === 'detail') app.renderDetail();
+      if (app.state.view === 'compare') app.renderCompare();
+    });
+  } catch (error) {
+    console.error("從 Firebase 讀取商品失敗：", error);
+    DB.products = [];
+  }
+}
+
+const app = {
+  state: { view: 'home', valueTab: '新品推薦', cart: [], orders: [], compare: [], history: [], user: null, usersDB: {}, currentProductId: null, searchQuery: '' },
+  lastNavView: 'home', 
+  slideIdx: 0,
+  slideInterval: null,
+  currentDisplayReviews: [], 
+  
+  async init() {
+    await initializeProducts();
+    this.loadState();
+    
+    // 新增：監聽頁面滾動，並根據距離加入或移除捲動控制 class
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 50) {
+        document.body.classList.add('scrolled');
+      } else {
+        document.body.classList.remove('scrolled');
+      }
+    });
+    
+    try {
+      let fullState = localStorage.getItem('liviSpaceState') ? JSON.parse(localStorage.getItem('liviSpaceState')) : {};
+      let today = new Date().toLocaleDateString();
+      if(!fullState.visitors || fullState.visitors.date !== today) { fullState.visitors = { date: today, count: 0 }; }
+      if(!sessionStorage.getItem('liviSpaceVisited')) {
+         fullState.visitors.count += 1;
+         sessionStorage.setItem('liviSpaceVisited', 'true');
+         localStorage.setItem('liviSpaceState', JSON.stringify(fullState));
+      }
+    } catch(e) {}
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') this.search(e.target.value); });
+    
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'liviSpaceProducts') { 
+        try { DB.products = JSON.parse(e.newValue); } catch(err){}
+        if (this.state.view === 'list') this.renderList(); if (this.state.view === 'home') this.renderHome(); if (this.state.view === 'detail') this.renderDetail(); 
+      }
+      if (e.key === 'liviSpaceState') { 
+        this.loadState(); 
+        if (this.state.view === 'member') this.renderMember(); 
+      }
+    });
+
+    this.navigate(this.state.view || 'home');
+    this.updateBadges();
+  },
+
+  loadState() {
+    try {
+      const saved = localStorage.getItem('liviSpaceState');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        this.state.cart = parsed.cart || []; this.state.orders = parsed.orders || [];
+        this.state.compare = parsed.compare || []; this.state.history = parsed.history || [];
+        this.state.user = parsed.user || null;
+        this.state.usersDB = parsed.usersDB || {};
+      }
+    } catch(e) {
+      this.state = { view: 'home', valueTab: '新品推薦', cart: [], orders: [], compare: [], history: [], user: null, usersDB: {}, currentProductId: null, searchQuery: '' };
+    }
+  },
+
+  saveState() {
+    try {
+      let fullState = localStorage.getItem('liviSpaceState') ? JSON.parse(localStorage.getItem('liviSpaceState')) : {};
+      fullState.cart = this.state.cart; fullState.orders = this.state.orders;
+      fullState.compare = this.state.compare; fullState.history = this.state.history;
+      fullState.user = this.state.user; fullState.usersDB = this.state.usersDB;
+      localStorage.setItem('liviSpaceState', JSON.stringify(fullState));
+      this.updateBadges();
+    } catch(e){}
+  },
+
+  navigate(view, params = {}) {
+    if (this.state.view && this.state.view !== view) {
+      this.lastNavView = this.state.view;
+    }
+
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    let target = document.getElementById(`view-${view}`);
+    if(target) target.classList.add('active');
+    
+    this.state.view = view; this.saveState(); window.scrollTo(0, 0);
+    
+    if (view === 'home') { this.renderHome(); this.initCarousel(); }
+    else { if(this.slideInterval) clearInterval(this.slideInterval); }
+
+    if (view === 'list') this.renderList();
+    if (view === 'detail') { this.state.currentProductId = params.id; this.renderDetail(); }
+    if (view === 'cart') this.renderCart(); 
+    if (view === 'compare') this.renderCompare();
+    if (view === 'member') this.renderMember(); 
+    if (view === 'checkout') this.renderCheckout();
+  },
+
+  goBack() {
+    this.navigate(this.lastNavView || 'home');
+  },
+
+  showToast(msg) {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div'); toast.className = 'toast'; toast.innerText = msg;
+    container.appendChild(toast); setTimeout(() => toast.remove(), 3000);
+  },
+
+  updateBadges() { 
+    document.getElementById('cart-badge').innerText = this.state.cart.length || 0; 
+    document.getElementById('compare-badge').innerText = this.state.compare.length || 0;
+    document.getElementById('compare-count').innerText = this.state.compare.length || 0;
+    document.getElementById('compare-bar').classList.toggle('show', this.state.compare.length > 0 && this.state.view !== 'compare');
+  },
+
+  initCarousel() {
+    if(this.slideInterval) clearInterval(this.slideInterval);
+    this.slideInterval = setInterval(() => {
+        this.slideIdx = (this.slideIdx + 1) % 3;
+        this.updateCarousel();
+    }, 4000);
+  },
+  goToSlide(idx) {
+    this.slideIdx = idx;
+    this.updateCarousel();
+    this.initCarousel();
+  },
+  updateCarousel() {
+    const inner = document.getElementById('carousel-inner');
+    const dots = document.querySelectorAll('.carousel-dot');
+    if(!inner) return;
+    inner.style.transform = `translateX(-${this.slideIdx * 100}%)`;
+    dots.forEach((d, i) => d.classList.toggle('active', i === this.slideIdx));
+  },
+
+  createProductCard(p) {
+    const isComp = this.state.compare.includes(p.id);
+    const btnHtml = p.stock > 0 ? `<button class="btn btn-primary" style="padding:4px 8px;" onclick="app.addToCart('${p.id}')">🛒 加入</button>` : `<button class="btn btn-primary" style="padding:4px 8px;" disabled>售完</button>`;
+    
+    return `<div class="card"><div class="card-img" onclick="app.navigate('detail', {id:'${p.id}'})"><img src="${p.image}">${p.stock === 0 ? '<span class="badge" style="top:10px; left:10px; background:#777;">已售完</span>' : ''}</div>
+      <div class="card-body"><div class="card-title" onclick="app.navigate('detail', {id:'${p.id}'})">${p.name}</div>
+      <div style="font-size:12px; color:#999; margin-bottom:5px;">剩餘庫存: ${p.stock}</div>
+      <div class="card-price">$${p.price.toLocaleString()}</div><div class="card-actions">
+        <label style="font-size:12px; cursor:pointer;"><input type="checkbox" ${isComp?'checked':''} onchange="app.toggleCompare('${p.id}', this.checked)"> 加入比較</label>${btnHtml}
+      </div></div></div>`;
+  },
+
+  switchValueTab(tab) {
+    this.state.valueTab = tab;
+    document.querySelectorAll('.value-tab').forEach(el => {
+      el.style.color = '#999';
+      el.style.borderBottomColor = 'transparent';
+      el.style.fontWeight = 'normal';
+    });
+    
+    const targetEl = Array.from(document.querySelectorAll('.value-tab')).find(el => el.innerText === tab);
+    if (targetEl) {
+      targetEl.style.color = '#333';
+      targetEl.style.borderBottomColor = '#333';
+      targetEl.style.fontWeight = 'bold';
+    }
+    
+    let recs = [];
+    if (tab === '新品推薦') {
+      recs = [...DB.products].sort((a, b) => b.id.localeCompare(a.id)).slice(0, 4);
+    } else if (tab === '沙發推薦') {
+      recs = [...DB.products].filter(p => p.category === '沙發').slice(0, 4);
+    } else if (tab === '床墊推薦') {
+      recs = [...DB.products].filter(p => p.category === '床墊').slice(0, 4);
+    }
+    document.getElementById('home-value-recommend').innerHTML = recs.map(p => this.createProductCard(p)).join('');
+  },
+
+  renderHome() { 
+    let bestsellers = [...DB.products].sort((a,b)=>(b.soldCount||0) - (a.soldCount||0)).slice(0, 5);
+    document.getElementById('home-bestsellers').innerHTML = bestsellers.map(p => this.createProductCard(p)).join(''); 
+    
+    this.switchValueTab(this.state.valueTab || '新品推薦');
+
+    let youMayLike = [...DB.products].sort(() => 0.5 - Math.random()).slice(0, 4);
+    document.getElementById('home-you-may-like').innerHTML = youMayLike.map(p => this.createProductCard(p)).join('');
+    
+    this.renderBuyerReviews();
+  },
+
+  renderBuyerReviews() {
+    const container = document.getElementById('home-buyer-reviews');
+    if (!container) return;
+
+    let displayReviews = [
+      {
+        id: 'mock1',
+        username: 'kuohsingchun_official',
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&q=80',
+        img: 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&w=800&q=80',
+        text: '沙發很舒適，整體房間的風格感提升很多！大推他們家的實木家具。',
+        productName: 'SALTMYRAN三人貓抓布沙發',
+        productPrice: 28500,
+        productImg: 'image/沙發.png',
+        productId: null
+      },
+      {
+        id: 'mock2',
+        username: 'cin***',
+        avatar: '',
+        img: 'https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=800&q=80',
+        text: '這個雙人床墊睡起來真的超舒服，支撐力好，而且表布很透氣。',
+        productName: '雙人偏硬床墊',
+        productPrice: 15800,
+        productImg: 'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?auto=format&fit=crop&w=300&q=80',
+        productId: null
+      },
+      {
+        id: 'mock3',
+        username: 'meo***',
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=100&q=80',
+        img: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=800&q=80',
+        text: '開箱就被貓咪佔領的涼感床墊...在這炎熱的夏天不只我們需要，毛小孩也很懂享受！',
+        productName: 'D865雙人加大偏硬床墊',
+        productPrice: 1990,
+        productImg: 'image/床墊.png',
+        productId: null
+      },
+      {
+        id: 'mock4',
+        username: 'lis***',
+        avatar: '',
+        img: 'image/評價圖.webp',
+        text: '沙發很軟很好躺，全家人都很喜歡！布料防潑水很好清理。',
+        productName: '三人貓抓布沙發',
+        productPrice: 24500,
+        productImg: 'image/沙發/Three-seater cat sofa1.png',
+        productId: null
+      },
+      {
+        id: 'mock5',
+        username: 'factoryxii',
+        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=100&q=80',
+        text: '原本擔心實品會有落差，結果送來質感出乎意料的好，非常滿意！',
+        img: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+        productName: '四抽餐邊櫃',
+        productPrice: 8900,
+        productImg: 'image/四抽餐邊櫃.png',
+        productId: null
+      }
+    ];
+
+    if(this.state.orders) {
+      this.state.orders.forEach(o => {
+        if (o.isReviewed && o.reviewImg) {
+          const item = o.items[0]; 
+          let productImg = item ? item.image : '';
+          let productName = item ? item.name : '購買商品';
+          let productPrice = item ? item.price : 0;
+          let productId = item ? item.id : null;
+
+          let usernameMasked = o.user.split('@')[0];
+          if(usernameMasked.length > 3) usernameMasked = usernameMasked.substring(0,3) + '***';
+
+          displayReviews.unshift({
+            id: o.id,
+            username: usernameMasked,
+            avatar: '',
+            img: o.reviewImg,
+            text: o.reviewText,
+            productName: productName,
+            productPrice: productPrice,
+            productImg: productImg,
+            productId: productId
+          });
+        }
+      });
+    }
+
+    container.innerHTML = displayReviews.map(r => {
+       const avatarHtml = r.avatar ? `<img src="${r.avatar}">` : (r.username.charAt(0).toUpperCase() || 'U');
+       return `
+        <div class="review-item" onclick="app.openReviewModal('${r.id}')">
+          <div class="review-img-wrap"><img src="${r.img}"></div>
+          <div class="review-user-info">
+             <div class="review-avatar" style="${!r.avatar?'background:var(--primary);':''}">${avatarHtml}</div>
+             <span class="review-username">${r.username}</span>
+          </div>
+        </div>
+       `;
+    }).join('');
+
+    this.currentDisplayReviews = displayReviews;
+  },
+
+  scrollGallery(direction) {
+    const gallery = document.getElementById('home-buyer-reviews');
+    if (gallery) {
+      const scrollAmount = 235; 
+      gallery.scrollBy({ left: direction * scrollAmount * 2, behavior: 'smooth' }); 
+    }
+  },
+
+  openReviewModal(id) {
+    const review = this.currentDisplayReviews.find(r => r.id === id);
+    if(!review) return;
+    
+    document.getElementById('modal-review-img').src = review.img;
+    const avatarContainer = document.getElementById('modal-review-avatar');
+    if(review.avatar) {
+       avatarContainer.innerHTML = `<img src="${review.avatar}">`;
+       avatarContainer.style.background = 'transparent';
+    } else {
+       avatarContainer.innerHTML = review.username.charAt(0).toUpperCase();
+       avatarContainer.style.background = 'var(--primary)';
+    }
+    
+    document.getElementById('modal-review-username').innerText = review.username;
+    document.getElementById('modal-review-text').innerText = review.text;
+    
+    document.getElementById('modal-review-product-img').src = review.productImg;
+    document.getElementById('modal-review-product-name').innerText = review.productName;
+    document.getElementById('modal-review-product-price').innerText = '$' + review.productPrice.toLocaleString();
+    
+    const productLink = document.getElementById('modal-review-product-link');
+    let targetId = review.productId;
+    
+    if (!targetId && DB.products) {
+        const matched = DB.products.find(p => p.name === review.productName);
+        if (matched) targetId = matched.id;
+    }
+
+    productLink.onclick = () => {
+       document.getElementById('review-detail-modal').style.display='none';
+       if (targetId) {
+           app.navigate('detail', {id: targetId});
+       } else {
+           app.search(review.productName);
+       }
+    };
+    productLink.onmouseover = () => productLink.style.opacity = '0.7';
+    productLink.onmouseout = () => productLink.style.opacity = '1';
+    productLink.style.cursor = 'pointer';
+    productLink.style.transition = '0.2s';
+
+    document.getElementById('review-detail-modal').style.display = 'flex';
+  },
+  
+  search(q) { 
+    this.state.searchQuery = q; 
+    document.getElementById('searchInput').value = q; 
+    this.navigate('list'); 
+  },
+
+  getSpec(p) {
+    const base = {
+      brand: 'CHG 好室選物', color: p.color || '原木色 / 百搭色', origin: '台灣', warranty: '1 年保固', 
+      // 💡 修改：將預設值改為優先讀取資料庫的值，若無資料才給預設值
+      assembly: p.assembly || '自行組裝', 
+      loadCapacity: p.loadCapacity || '100 kg', 
+      delivery: '一般宅配', 
+      weight: p.weight || '20 kg', 
+      material: '高質感複合材質', desc: '高品質質感家具，為您的居家空間增添獨特風格。採用環保材質製作，經久耐用，是您成家選物的最佳搭配。'
+    };
+
+    let dimString = '尚未提供';
+    if (p.length || p.width || p.height) {
+        let lengthStr = p.length ? `長 ${p.length}` : '';
+        let widthStr = p.width ? `寬 ${p.width}` : '';
+        let heightStr = p.height ? `高 ${p.height}` : '';
+        
+        let dims = [lengthStr, widthStr, heightStr].filter(Boolean);
+        dimString = dims.join(' x ') + ' cm';
+    }
+    base.dim = dimString;
+
+    if (p.name.includes('皮')) base.material = '高級真皮 / 合成皮、實木框架';
+    if (p.name.includes('布')) base.material = '高質感防潑水布料、高密度泡棉';
+    if (p.name.includes('乳膠')) base.material = '天然乳膠、獨立筒彈簧';
+
+    return {
+      brand: base.brand,
+      category: p.category,
+      style: p.style || '北歐風',
+      dim: base.dim,
+      material: base.material,
+      weight: base.weight,
+      color: base.color,
+      origin: base.origin,
+      warranty: base.warranty,
+      assembly: base.assembly,
+      loadCapacity: base.loadCapacity,
+      delivery: base.delivery,
+      desc: base.desc
+    };
+  },
+  
+  clearFilters() {
+    if(document.getElementById('filter-style-select')) document.getElementById('filter-style-select').value = '';
+    if(document.getElementById('filter-width-select')) document.getElementById('filter-width-select').value = '';
+    document.getElementById('filter-min-price').value = '';
+    document.getElementById('filter-max-price').value = '';
+    this.renderList();
+  },
+
+  renderList() {
+    let filtered = [...DB.products]; 
+    
+    if (this.state.searchQuery) {
+        let q = this.state.searchQuery.toLowerCase();
+        filtered = filtered.filter(p => 
+            p.name.toLowerCase().includes(q) || 
+            (p.category && p.category.toLowerCase().includes(q)) || 
+            (p.room && p.room.toLowerCase().includes(q)) ||
+            (p.style && p.style.toLowerCase().includes(q))
+        );
+        document.getElementById('list-title').innerText = `搜尋結果：${this.state.searchQuery}`;
+    } else {
+        document.getElementById('list-title').innerText = `全部商品列表`;
+    }
+
+    let selectedStyle = document.getElementById('filter-style-select')?.value;
+    if(selectedStyle) {
+        filtered = filtered.filter(p => p.style === selectedStyle);
+    }
+
+    let selectedWidth = document.getElementById('filter-width-select')?.value;
+    if(selectedWidth) {
+        filtered = filtered.filter(p => {
+            let w = parseInt(p.width);
+            if(isNaN(w)) return true;
+            if(selectedWidth === '<100') return w < 100;
+            if(selectedWidth === '100-160') return w >= 100 && w <= 160;
+            if(selectedWidth === '>160') return w > 160;
+            return true;
+        });
+    }
+
+    let minPrice = document.getElementById('filter-min-price')?.value;
+    let maxPrice = document.getElementById('filter-max-price')?.value;
+    if(minPrice) filtered = filtered.filter(p => p.price >= parseInt(minPrice));
+    if(maxPrice) filtered = filtered.filter(p => p.price <= parseInt(maxPrice));
+
+    const sortSelect = document.getElementById('sort-select');
+    const sortMode = sortSelect ? sortSelect.value : 'default';
+    if (sortMode === 'price-asc') {
+      filtered.sort((a, b) => a.price - b.price);
+    } else if (sortMode === 'price-desc') {
+      filtered.sort((a, b) => b.price - a.price);
+    } else if (sortMode === 'sales') {
+      filtered.sort((a, b) => (b.soldCount || 0) - (a.soldCount || 0));
+    } else if (sortMode === 'newest') {
+      filtered.sort((a, b) => b.id.localeCompare(a.id));
+    }
+
+    document.getElementById('product-list').innerHTML = filtered.length ? filtered.map(p => this.createProductCard(p)).join('') : '<p style="grid-column: 1 / -1; text-align:center; padding: 40px; color:#888;">查無商品！請嘗試放寬篩選或使用其他關鍵字</p>';
+  },
+
+  switchDetailTab(tabName) {
+    document.querySelectorAll('.detail-tab-btn').forEach(el => {
+      el.style.background = '#f9f9f9';
+      el.style.borderTop = 'none';
+      el.style.fontWeight = 'normal';
+    });
+    document.querySelectorAll('.detail-tab-content').forEach(el => {
+      el.style.display = 'none';
+    });
+    
+    const btn = document.getElementById('btn-tab-' + tabName);
+    if(btn) {
+      btn.style.background = '#fff';
+      btn.style.borderTop = '3px solid #000';
+      btn.style.fontWeight = 'bold';
+    }
+    
+    const content = document.getElementById('content-tab-' + tabName);
+    if(content) {
+      content.style.display = 'block';
+    }
+  },
+
+  renderDetail() {
+    const p = DB.products.find(x => x.id === this.state.currentProductId); if(!p) return;
+    
+    this.state.history = this.state.history.filter(id => id !== p.id);
+    this.state.history.unshift(p.id);
+    if(this.state.history.length > 15) this.state.history.pop();
+    this.saveState();
+
+    const itemSpec = this.getSpec(p);
+    const originalPrice = Math.floor(p.price * 1.25); 
+
+    const colors = itemSpec.color.split('/').map(c => c.trim());
+    const colorHtml = colors.map((c, idx) => `
+      <label style="display:inline-block; border:1px solid ${idx===0?'#666':'#ccc'}; padding:6px 16px; margin-right:10px; cursor:pointer; color:#333; font-size:14px; transition:0.2s;">
+        <input type="radio" name="detail-color" value="${c}" ${idx===0?'checked':''} style="display:none;" onchange="this.parentElement.parentElement.querySelectorAll('label').forEach(l=>{l.style.borderColor='#ccc'}); this.parentElement.style.borderColor='#666';">
+        ${c}
+      </label>
+    `).join('');
+
+    const qtyOptions = Array.from({length: p.stock > 0 ? Math.min(p.stock, 10) : 1}, (_, i) => `<option value="${i+1}">${i+1}</option>`).join('');
+
+    const shippingTextHtml = `
+      <div style="margin-top:40px; border-top:1px solid #eee; padding-top:25px;">
+        <h4 style="margin-bottom:15px; font-size:15px; color:#333; display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">🚚</span> 運費說明 / 以件計算
+        </h4>
+        <div style="font-size:13px; color:#555; line-height:1.9;">
+          雙北、桃園、基隆、宜蘭 → 免運<br>
+          新竹、台中、彰化 → 免運<br>
+          苗栗、雲林、南投 → 1000元<br>
+          嘉義、台南、高雄、屏東 → 1800元<br>
+          花蓮、台東、外島地區暫時無法配送<br><br>
+          <span style="color:#888;">
+          ※各縣市偏遠及不配送區域，請參考以下的【購物須知】<br>
+          ※三樓以上無電梯需酌收樓層費(包含三樓)<br>
+          ※雲林以北可貨到付款<br>
+          ※南部地區無貨到付款服務
+          </span>
+        </div>
+      </div>
+    `;
+
+    // 💡 修改：在商品介紹的產品規格中，加入了對應的同步屬性
+    const descHtml = `
+      ${itemSpec.brand} ${p.name} | 質感設計 | 機能型家具<br>
+      ${itemSpec.desc}<br><br>
+      <strong>📐 產品規格</strong><br>
+      尺寸：${itemSpec.dim}<br>
+      材質：${itemSpec.material}<br>
+      重量：${itemSpec.weight}<br>
+      最大承重：${itemSpec.loadCapacity}<br>
+      組裝需求：${itemSpec.assembly}<br><br>
+      適合族群：<br>
+      √ 注重居家生活質感<br>
+      √ 需要穩固與安心材質<br>
+      √ 多功能實用需求<br><br>
+      特色：<br>
+      精選材質耐用度高<br>
+      ${p.category}高CP值首選<br>
+      <br>
+      <span style="color:#c0392b; cursor:pointer; text-decoration:underline;" onclick="app.navigate('policy')">推薦閱讀【CHG 居家佈置！尺寸怎麼選？必看指南】</span>
+    `;
+
+    const policyHtml = `
+      <h3 style="color:var(--primary); margin-bottom:10px;">🚚 配送與跨境購物</h3><p style="margin-bottom:15px;">台灣本島滿 $15,000 享免運。依縣市區域有所不同，苗栗/南投等地酌收物流費用，花東與外島暫無配送。</p>
+      <h3 style="color:var(--primary); margin-bottom:10px;">💳 促銷機制與分期付款</h3><p style="margin-bottom:15px;">消費每滿 $100 贈 1 點。提供信用卡 3/6/12 期零利率分期服務。</p>
+      <h3 style="color:var(--primary); margin-bottom:10px;">🔄 退換貨與保固維修</h3><p style="margin-bottom:15px;">全站家具皆享 1 年保固。收到商品七日內可至「我的訂單」申請退換貨，需保持包裝完整無損。</p>
+      <h3 style="color:var(--primary); margin-bottom:10px;">🧾 發票處理</h3><p>全面開立電子發票。支援手機條碼載具與公司戶三聯式統編發票。</p>
+    `;
+
+    const faqHtml = `
+      <div style="margin-bottom:15px; border-bottom:1px dashed #ddd; padding-bottom:10px;">
+        <div style="font-weight:bold; color:var(--primary);">Q: 購買後如果發現尺寸不合可以退換嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 享有七天鑑賞期（非試用期），保持包裝完整無損毀即可申請退換貨，但可能酌收部分整新與物流費用。</div>
+      </div>
+      <div style="margin-bottom:15px; border-bottom:1px dashed #ddd; padding-bottom:10px;">
+        <div style="font-weight:bold; color:var(--primary);">Q: 商品需要自行組裝嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 絕大多數大型家具將由我們的專業物流團隊為您到府定位組裝，免收額外安裝費。</div>
+      </div>
+      <div>
+        <div style="font-weight:bold; color:var(--primary);">Q: 請問有實體店面可以看實品嗎？</div>
+        <div style="color:var(--text-muted); margin-top:5px; font-size:14px;">A: 目前我們為全線上商城，以此將最優惠的價格回饋給顧客，暫無提供實體展間服務。</div>
+      </div>
+    `;
+
+    const images = [p.image, p.image2, p.image3].filter(Boolean);
+    const thumbHtml = images.map((img, idx) => `
+      <img src="${img}" 
+           class="detail-thumb"
+           onclick="document.getElementById('main-detail-img').src='${img}'; document.querySelectorAll('.detail-thumb').forEach(el=>el.style.borderColor='transparent'); this.style.borderColor='#666';" 
+           style="width:70px; height:70px; object-fit:cover; border:2px solid ${idx===0?'#666':'transparent'}; cursor:pointer; border-radius:4px;">
+    `).join('');
+
+    document.getElementById('detail-content').innerHTML = `
+      <div style="font-size:14px; color:#555; margin-bottom:20px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.navigate('home')">🏠 首頁</a> &gt;
+        <a style="color:#0066cc; cursor:pointer; text-decoration:none;" onclick="app.search('${p.category}')">${p.category}</a> &gt;
+        <span style="color:#999;">${p.name}</span>
+      </div>
+      
+      <div class="flex-layout" style="align-items: flex-start;">
+        <div style="flex:1.2; position:relative;">
+          <div style="background:#EFEBE4; overflow:hidden;">
+            <img id="main-detail-img" src="${images[0]}" style="width:100%; height:auto; object-fit:cover; aspect-ratio:4/3; display:block;">
+          </div>
+          <div style="display:flex; gap:10px; margin-top:10px;">
+            ${thumbHtml}
+          </div>
+        </div>
+        
+        <div style="flex:1; display:flex; flex-direction:column; padding-left:10px;">
+          <h2 style="font-size:24px; margin-bottom:20px; font-weight:normal; color:#222;">${p.name}</h2>
+          
+          <div style="display:flex; align-items:baseline; gap:15px; margin-bottom:25px;">
+            <span style="font-size:15px; color:#666;">售價 <span style="text-decoration:line-through;">$${originalPrice.toLocaleString()}</span></span>
+            <span style="font-size:15px; color:#333;">特價 <span style="color:var(--danger); font-size:26px; font-weight:bold;">$${p.price.toLocaleString()}</span></span>
+          </div>
+
+          <div style="display:flex; align-items:center; margin-bottom:20px;">
+            <span style="font-size:14px; color:#555; width:50px;">顏色</span>
+            <div>${colorHtml}</div>
+          </div>
+          <div style="display:flex; align-items:center; margin-bottom:25px;">
+            <span style="font-size:14px; color:#555; width:50px;">數量</span>
+            <select id="detail-qty" style="width:80px; padding:6px 10px; border:1px solid #ccc; font-size:14px; outline:none; cursor:pointer;">
+              ${qtyOptions}
+            </select>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:12px; margin-bottom:20px;">
+            <div style="display:flex; gap:10px;">
+               <button class="btn" style="background:#5c4b41; color:white; font-size:16px; padding:14px; flex:1; border-radius:2px; font-weight:bold; letter-spacing:1px;" onclick="app.addToCart('${p.id}', parseInt(document.getElementById('detail-qty').value))" ${p.stock===0?'disabled':''}>加入購物車</button>
+               <button class="btn btn-danger" style="font-size:16px; padding:14px; flex:1; border-radius:2px; font-weight:bold; letter-spacing:1px;" onclick="app.buyNow('${p.id}')" ${p.stock===0?'disabled':''}>立即購買</button>
+            </div>
+          </div>
+
+          ${shippingTextHtml}
+        </div>
+      </div>
+
+      <div style="margin-top:50px; border-top:1px solid #ccc; padding-top:20px;">
+        <h3 style="font-size:16px; color:#333; margin-bottom:15px; display:flex; align-items:center; gap:5px;">📄 商品介紹</h3>
+        <div style="display:flex; border:1px solid #ccc; border-bottom:none; text-align:center;">
+          <div id="btn-tab-desc" class="detail-tab-btn" style="flex:1; padding:15px; border-right:1px solid #ccc; background:#fff; font-weight:bold; color:#333; border-top:3px solid #000; cursor:pointer;" onclick="app.switchDetailTab('desc')">商品細節</div>
+          <div id="btn-tab-policy" class="detail-tab-btn" style="flex:1; padding:15px; border-right:1px solid #ccc; background:#f9f9f9; color:#666; cursor:pointer;" onclick="app.switchDetailTab('policy')">購物需知</div>
+          <div id="btn-tab-faq" class="detail-tab-btn" style="flex:1; padding:15px; background:#f9f9f9; color:#666; cursor:pointer;" onclick="app.switchDetailTab('faq')">FAQ</div>
+        </div>
+        
+        <div style="border:1px solid #ccc; padding:30px; background:#fff; font-size:14px; color:#444; line-height:1.8;">
+          <div id="content-tab-desc" class="detail-tab-content" style="display:block;">${descHtml}</div>
+          <div id="content-tab-policy" class="detail-tab-content" style="display:none;">${policyHtml}</div>
+          <div id="content-tab-faq" class="detail-tab-content" style="display:none;">${faqHtml}</div>
+        </div>
+      </div>
+    `;
+  },
+
+  openAIModal() { document.getElementById('ai-modal').style.display = 'flex'; },
+  askAI(presetMsg) {
+    const input = document.getElementById('ai-input');
+    const msg = presetMsg || input.value;
+    if(!msg.trim()) return;
+    const chatBox = document.getElementById('ai-chat-box');
+    
+    chatBox.innerHTML += `<div style="margin-bottom: 15px; display:flex; justify-content:flex-end;"><div style="background:var(--primary); color:white; padding:10px 15px; border-radius:15px 15px 0 15px; box-shadow:var(--shadow); max-width:85%; word-break:break-all;">${msg}</div></div>`;
+    input.value = '';
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    const loadingId = 'ai-loading-' + Date.now();
+    chatBox.innerHTML += `<div id="${loadingId}" style="margin-bottom: 15px; display:flex; gap:10px;"><div style="background:white; padding:12px 15px; border-radius:15px 15px 15px 0; box-shadow:var(--shadow); width:100%; color:#888; border-left:3px solid var(--primary);"><strong>AI 助理：</strong><br>思考您的需求中... 🔍</div></div>`;
+    chatBox.scrollTop = chatBox.scrollHeight;
+    
+    setTimeout(() => {
+      document.getElementById(loadingId).remove();
+      
+      const query = msg.toLowerCase();
+      let scoredProducts = DB.products.map(p => {
+        let score = 0;
+        let searchStr = (p.name + (p.category||'') + (p.style||'') + (p.room||'') + (p.material||'')).toLowerCase();
+        
+        if (query.includes(p.category)) score += 5;
+        if (p.style && query.includes(p.style)) score += 5;
+        if (query.includes('客廳') && ['沙發','電視櫃','茶几'].includes(p.category)) score += 3;
+        if (query.includes('臥室') && ['床墊','衣櫃','化妝台'].includes(p.category)) score += 3;
+        if (query.includes('木') && searchStr.includes('木')) score += 2;
+        if (query.includes('布') && searchStr.includes('布')) score += 2;
+        if (query.includes('皮') && searchStr.includes('皮')) score += 2;
+        if (query.includes('收納') && searchStr.includes('櫃')) score += 3;
+        
+        let words = query.replace(/[^\w\s\u4e00-\u9fa5]/g, '').split(/(?<=.)/);
+        words.forEach(w => {
+          if(w.length > 1 && searchStr.includes(w)) score += 1;
+        });
+
+        return { ...p, score };
+      });
+
+      let budget = null;
+      const numMatch = query.match(/(\d+)/);
+      if(query.includes('預算')) {
+          if(numMatch) budget = parseInt(numMatch[0]);
+          if(query.includes('萬') && budget < 100) budget *= 10000;
+          if(query.includes('千') && budget < 1000) budget *= 1000;
+      }
+      if(!budget) {
+         if(query.includes('一萬內') || query.includes('1萬內') || query.includes('10000內')) budget = 10000;
+         else if(query.includes('兩萬內') || query.includes('2萬內') || query.includes('20000內')) budget = 20000;
+         else if(query.includes('五千內') || query.includes('5千內') || query.includes('5000內')) budget = 5000;
+      }
+
+      if (budget) {
+          scoredProducts = scoredProducts.filter(p => p.price <= budget);
+          scoredProducts.forEach(p => p.score += 2);
+      }
+
+      let recommended = scoredProducts.filter(p => p.score > 0).sort((a,b) => b.score - a.score);
+      let topRecs = recommended.slice(0, 3);
+      let aiResponseText = "";
+
+      if (topRecs.length === 0) {
+          topRecs = [...DB.products].sort((a,b)=>(b.soldCount||0) - (a.soldCount||0)).slice(0, 2);
+          aiResponseText = "雖然不太確定您具體想找什麼，或者超出了現有庫存的預算範圍，但我為您推薦目前店內**最熱銷的優質商品**，說不定會符合您的品味：<br>";
+      } else {
+          let traits = [];
+          if(budget) traits.push(`預算 ${budget} 元以內`);
+          if(query.includes('北歐')) traits.push('北歐風');
+          if(query.includes('工業')) traits.push('工業風');
+          if(query.includes('沙發')) traits.push('床墊');
+          
+          if(traits.length > 0) {
+              aiResponseText = `為您找到符合「**${traits.join('、')}**」的絕佳選擇，這幾款在設計與實用性上都非常出色：<br>`;
+          } else {
+              aiResponseText = "根據您的需求，我經過分析後為您精選了以下最合適的商品：<br>";
+          }
+      }
+
+      let replyHtml = aiResponseText;
+      topRecs.forEach(p => {
+        replyHtml += `<div style="display:flex; align-items:center; gap:10px; margin-top:12px; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid var(--border); cursor:pointer; transition:0.2s;" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='var(--border)'" onclick="app.navigate('detail', {id:'${p.id}'}); document.getElementById('ai-modal').style.display='none';">
+          <img src="${p.image}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;">
+          <div style="flex:1;"><strong>${p.name}</strong><br><span style="color:var(--danger); font-weight:bold;">$${p.price.toLocaleString()}</span></div>
+          <button class="btn btn-outline" style="padding:4px 8px; font-size:12px;">查看細節</button>
+        </div>`;
+      });
+      
+      chatBox.innerHTML += `<div style="margin-bottom: 15px; display:flex; gap:10px;"><div style="background:white; padding:12px 15px; border-radius:15px 15px 15px 0; box-shadow:var(--shadow); width:100%; border-left:3px solid var(--primary);"><strong>AI 助理：</strong><br>${replyHtml}</div></div>`;
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+    }, 1200);
+  },
+
+  openHistoryModal() {
+    this.renderHistory();
+    document.getElementById('history-modal').style.display = 'flex';
+  },
+  renderHistory() {
+    const listEl = document.getElementById('history-list');
+    if (!this.state.history || this.state.history.length === 0) {
+      listEl.innerHTML = '<p style="text-align:center; color:#999; margin:20px 0;">尚無瀏覽紀錄</p>';
+      return;
+    }
+    listEl.innerHTML = this.state.history.map(id => {
+      const p = DB.products.find(x => x.id === id);
+      if (!p) return '';
+      return `
+        <div style="display:flex; align-items:center; gap:10px; background:#f9f9f9; padding:10px; border-radius:8px; border:1px solid var(--border); cursor:pointer;" onclick="app.navigate('detail', {id:'${p.id}'}); document.getElementById('history-modal').style.display='none';">
+          <img src="${p.image}" style="width:60px; height:60px; object-fit:cover; border-radius:4px;">
+          <div style="flex:1;">
+            <div style="font-weight:bold; font-size:14px;">${p.name}</div>
+            <div style="color:var(--danger); font-size:14px; margin-top:4px;">$${p.price.toLocaleString()}</div>
+          </div>
+        </div>`;
+    }).join('');
+  },
+  clearHistory() {
+    this.state.history = [];
+    this.saveState();
+    this.renderHistory();
+  },
+
+  toggleCompare(id, isChecked) {
+    if(isChecked) { 
+      const p = DB.products.find(x => x.id === id);
+      if (this.state.compare.length > 0) {
+        const firstP = DB.products.find(x => x.id === this.state.compare[0]);
+        if (firstP.category !== p.category) {
+          this.showToast('⚠️ 請選同類產品比較');
+          if(this.state.view === 'list') this.renderList();
+          if(this.state.view === 'detail') this.renderDetail();
+          return;
+        }
+      }
+      if(this.state.compare.length >= 4) { 
+        this.showToast('最多只能比較 4 件商品'); 
+        if(this.state.view === 'list') this.renderList();
+        if(this.state.view === 'detail') this.renderDetail();
+        return; 
+      } 
+      this.state.compare.push(id); 
+    } else { 
+      this.state.compare = this.state.compare.filter(x => x !== id); 
+    }
+    this.saveState();
+  },
+  clearCompare() { this.state.compare = []; this.saveState(); if(this.state.view==='compare') this.navigate('home'); else this.renderList(); },
+  
+  renderCompare() {
+    if(this.state.compare.length === 0) return document.getElementById('compare-content').innerHTML = '<p>尚未加入比較商品</p>';
+    const items = this.state.compare.map(id => DB.products.find(p => p.id === id)).filter(Boolean);
+    
+    let html = `<table style="width:100%; text-align:center; border-collapse: collapse; min-width: 800px;">`;
+    
+    html += `<tr><th style="padding:10px; border:1px solid var(--border); background:#f9f9f9; width:120px;">商品預覽</th>`;
+    items.forEach(p => { 
+        html += `<td style="min-width:200px; padding:15px; border:1px solid var(--border); vertical-align:top; background:white;">
+            <img src="${p.image}" style="height:120px; width:100%; object-fit:cover; border-radius:4px;"><br>
+            <strong style="display:inline-block; margin-top:10px;">${p.name}</strong><br>
+            <span style="color:var(--danger); font-size:18px; font-weight:bold;">$${p.price.toLocaleString()}</span><br>
+            <div style="margin-top:15px; display:flex; gap:5px; justify-content:center;">
+              <button class="btn btn-primary" style="padding:4px 8px; flex:1;" onclick="app.addToCart('${p.id}')">加入購物車</button>
+              <button class="btn btn-outline" style="padding:4px 8px;" onclick="app.toggleCompare('${p.id}', false); app.renderCompare();">移除</button>
+            </div>
+        </td>`; 
+    });
+    html += `</tr>`;
+    
+    const specRows = [
+      { label: '品牌', getVal: p => app.getSpec(p).brand },
+      { label: '商品分類', getVal: p => app.getSpec(p).category },
+      { label: '風格', getVal: p => app.getSpec(p).style },
+      { label: '尺寸 (長x寬x高)', getVal: p => app.getSpec(p).dim },
+      { label: '主要材質', getVal: p => app.getSpec(p).material },
+      { label: '商品重量', getVal: p => app.getSpec(p).weight },
+      { label: '顏色選項', getVal: p => app.getSpec(p).color },
+      { label: '生產製造', getVal: p => app.getSpec(p).origin },
+      { label: '售後保固', getVal: p => app.getSpec(p).warranty },
+      { label: '組裝需求', getVal: p => app.getSpec(p).assembly },
+      { label: '最大承重', getVal: p => app.getSpec(p).loadCapacity },
+      { label: '物流配送', getVal: p => app.getSpec(p).delivery }
+    ];
+
+    specRows.forEach(row => {
+      const values = items.map(p => row.getVal(p));
+      const allSame = values.every(v => v === values[0]);
+      const trClass = allSame ? '' : 'diff-highlight';
+
+      html += `<tr class="${trClass}"><th style="padding:10px; border:1px solid var(--border); color:var(--text-main); font-weight:bold;">${row.label}</th>`;
+      items.forEach(p => {
+         const val = row.getVal(p);
+         const tdClass = allSame ? '' : 'diff-text';
+         html += `<td class="${tdClass}" style="padding:12px; border:1px solid var(--border); font-size:14px; text-align:left;">${val}</td>`;
+      });
+      html += `</tr>`;
+    });
+
+    html += `</table>`; 
+    html += `<div style="margin-top:10px; font-size:13px; color:#777; text-align:right;">💡 淺黃色背景列表示規格有差異之處</div>`;
+    
+    document.getElementById('compare-content').innerHTML = html;
+  },
+
+  addToCart(id, qty = 1) {
+    if(!this.state.user) { this.showToast('⚠️ 請先登入會員才能開始購物喔！'); this.navigate('member'); return; }
+    const p = DB.products.find(x => x.id === id); if(!p || p.stock <= 0) return this.showToast('該商品已售完');
+    const existing = this.state.cart.find(x => x.id === id);
+    if(existing) { 
+      if (existing.qty + qty > p.stock) return this.showToast('庫存不足，無法加入更多'); 
+      existing.qty += qty; 
+    } else { 
+      this.state.cart.push({ id: p.id, name: p.name, price: p.price, image: p.image, qty: qty }); 
+    }
+    this.saveState(); this.showToast('🛒 已加入購物車');
+  },
+
+  buyNow(id) {
+    if(!this.state.user) { this.showToast('⚠️ 請先登入會員才能結帳！'); this.navigate('member'); return; }
+    const p = DB.products.find(x => x.id === id); if(!p || p.stock <= 0) return this.showToast('該商品已售完');
+    
+    const qty = document.getElementById('detail-qty') ? parseInt(document.getElementById('detail-qty').value) : 1;
+    const existing = this.state.cart.find(x => x.id === id);
+    if(!existing) {
+      this.state.cart.push({ id: p.id, name: p.name, price: p.price, image: p.image, qty: qty });
+    } else {
+      if (existing.qty + qty <= p.stock) {
+        existing.qty += qty;
+      }
+    }
+    this.saveState();
+    this.navigate('checkout');
+  },
+
+  renderCart() {
+    const list = document.getElementById('cart-items');
+    if(this.state.cart.length === 0) { list.innerHTML = '<p>購物車是空的</p>'; document.getElementById('cart-summary').innerHTML=''; return; }
+    let subtotal = 0;
+    list.innerHTML = this.state.cart.map((item, idx) => {
+      subtotal += item.price * item.qty;
+      // 💡 新增：為購物車商品圖片與名稱加入點擊事件與指標游標 (cursor:pointer)
+      return `<div style="display:flex; align-items:center; background:white; padding:15px; margin-bottom:10px; border:1px solid var(--border); border-radius:8px;">
+        <img src="${item.image}" style="width:60px; height:60px; margin-right:15px; object-fit:cover; border-radius:4px; cursor:pointer;" onclick="app.navigate('detail', {id:'${item.id}'})">
+        <div style="flex:1; cursor:pointer;" onclick="app.navigate('detail', {id:'${item.id}'})"><strong>${item.name}</strong></div>
+        
+        <div style="display:flex; align-items:center; gap:10px; margin-right:20px;">
+          <button class="btn btn-outline" style="padding:2px 8px;" onclick="app.updateCartQty('${item.id}', -1)">-</button>
+          <span style="width:20px; text-align:center;">${item.qty}</span>
+          <button class="btn btn-outline" style="padding:2px 8px;" onclick="app.updateCartQty('${item.id}', 1)">+</button>
+        </div>
+
+        <div style="width:100px; color:var(--danger); font-weight:bold;">$${(item.price * item.qty).toLocaleString()}</div>
+        <button class="btn btn-outline" onclick="app.updateCartQty('${item.id}', -${item.qty})">刪除</button>
+      </div>`;
+    }).join('');
+    document.getElementById('cart-summary').innerHTML = `<h3 style="color:var(--danger)">總計: $${subtotal.toLocaleString()}</h3>`;
+  },
+
+  updateCartQty(id, delta) {
+    const item = this.state.cart.find(x => x.id === id);
+    if (item) {
+      const p = DB.products.find(x => x.id === id);
+      if (delta > 0 && p && item.qty >= p.stock) {
+        this.showToast('已達該商品庫存上限');
+        return;
+      }
+      
+      item.qty += delta;
+      
+      if (item.qty <= 0) {
+        this.state.cart = this.state.cart.filter(x => x.id !== id);
+      }
+      
+      this.saveState();
+      this.renderCart();
+    }
+  },
+  
+  togglePaymentMethod() {
+    const isCreditCard = document.getElementById('pay-cc').checked;
+    
+    const ccInfo = document.getElementById('credit-card-info');
+    ccInfo.style.display = isCreditCard ? 'block' : 'none';
+    document.getElementById('cc-number').required = isCreditCard;
+    document.getElementById('cc-exp').required = isCreditCard;
+    document.getElementById('cc-cvv').required = isCreditCard;
+
+    const installmentLabel = document.getElementById('installment-label');
+    installmentLabel.style.display = isCreditCard ? 'inline-flex' : 'none';
+    if (!isCreditCard) {
+      document.getElementById('chk-installment').checked = false;
+      document.getElementById('installment-options').style.display = 'none';
+    }
+    
+    document.getElementById('bank-transfer-info').style.display = isCreditCard ? 'none' : 'block';
+    
+    this.updateCheckoutSummary();
+  },
+
+  toggleInstallment() {
+    const isChecked = document.getElementById('chk-installment').checked;
+    document.getElementById('installment-options').style.display = isChecked ? 'block' : 'none';
+    this.updateCheckoutSummary();
+  },
+
+  toggleInvoiceInput() {
+    const inv = document.getElementById('chk-invoice').value; const grp = document.getElementById('invoice-detail-group'); const lbl = document.getElementById('invoice-detail-label');
+    if (inv === '手機條碼載具') { grp.style.display = 'block'; lbl.innerText = '手機條碼 (例如：/AB12345)'; document.getElementById('chk-invoice-detail').required = true; } 
+    else if (inv === '公司三聯式發票') { grp.style.display = 'block'; lbl.innerText = '統一編號 (8碼數字)'; document.getElementById('chk-invoice-detail').required = true; } 
+    else { grp.style.display = 'none'; document.getElementById('chk-invoice-detail').required = false; document.getElementById('chk-invoice-detail').value = ''; }
+  },
+
+  renderCheckout() { 
+    if(!this.state.user) { this.showToast('請先登入會員'); this.navigate('member'); return; }
+    if(this.state.cart.length === 0) { this.showToast('購物車為空'); this.navigate('home'); return; }
+    
+    let u = this.state.usersDB[this.state.user] || { points: 0, coupons: [] }; 
+    let subtotal = this.state.cart.reduce((s,i) => s + i.price * i.qty, 0);
+    let availableCoupons = (u.coupons || []).filter(c => !c.used && subtotal >= c.min);
+    
+    let cSelect = document.getElementById('chk-coupon');
+    cSelect.innerHTML = `<option value="">不使用折價券</option>` + availableCoupons.map(c => `<option value="${c.id}" data-discount="${c.discount}">${c.name} (折 $${c.discount})</option>`).join('');
+    document.getElementById('chk-max-points').innerText = u.points || 0; 
+    document.getElementById('chk-points').max = u.points || 0; 
+    document.getElementById('chk-points').value = 0;
+    
+    if (document.getElementById('chk-installment')) {
+        document.getElementById('chk-installment').checked = false;
+        document.getElementById('installment-options').style.display = 'none';
+    }
+    
+    if (document.getElementById('pay-cc')) {
+        document.getElementById('pay-cc').checked = true;
+        this.togglePaymentMethod();
+    }
+    
+    this.toggleInvoiceInput(); this.updateCheckoutSummary();
+  },
+
+  updateCheckoutSummary() {
+    if(!this.state.user) return;
+    let u = this.state.usersDB[this.state.user] || { points: 0 }; 
+    
+    let subtotal = this.state.cart.reduce((s,i) => s + i.price * i.qty, 0);
+    let shippingFee = parseInt(document.getElementById('chk-region').value) || 0;
+    
+    // 💡 新增：結帳明細滿額 $15,000 免運判斷與 UI 呈現
+    let shippingDisplay = `$${shippingFee.toLocaleString()}`;
+    if (subtotal >= 15000) {
+        if (shippingFee > 0) {
+            shippingDisplay = `<del style="color:#999; font-size:12px; margin-right:4px;">$${shippingFee.toLocaleString()}</del> <span style="color:var(--success);">免運</span>`;
+        } else {
+            shippingDisplay = `<span style="color:var(--success);">免運</span>`;
+        }
+        shippingFee = 0; 
+    }
+
+    let cSelect = document.getElementById('chk-coupon'); 
+    let cDiscount = cSelect && cSelect.value ? parseInt(cSelect.options[cSelect.selectedIndex].dataset.discount) : 0;
+    
+    let pInput = document.getElementById('chk-points'); 
+    let usePoints = parseInt(pInput.value) || 0;
+    if (usePoints > (u.points||0)) usePoints = (u.points||0); 
+    if (usePoints > subtotal + shippingFee - cDiscount) usePoints = subtotal + shippingFee - cDiscount; 
+    pInput.value = usePoints;
+    
+    let finalTotal = subtotal + shippingFee - cDiscount - usePoints; 
+    let earnPoints = Math.floor(finalTotal / 100);
+
+    let isInstallment = document.getElementById('chk-installment') && document.getElementById('chk-installment').checked;
+    let isCreditCard = document.getElementById('pay-cc') ? document.getElementById('pay-cc').checked : true;
+    let paymentText = '';
+    
+    if (isCreditCard && isInstallment) {
+        let months = parseInt(document.getElementById('installment-select').value);
+        paymentText = `分 ${months} 期：每月約 $${Math.floor(finalTotal / months).toLocaleString()}`;
+    } else if (!isCreditCard) {
+        paymentText = '請於訂單成立後3日內完成轉帳匯款';
+    }
+    
+    if(document.getElementById('payment-info')) {
+        document.getElementById('payment-info').innerText = paymentText;
+    }
+
+    let itemsHtml = this.state.cart.map(i => `
+      <div style="display:flex; justify-content:space-between; font-size:13px; color:#555; margin-bottom:5px;">
+        <span>${i.name} x ${i.qty}</span>
+        <span>$${(i.price * i.qty).toLocaleString()}</span>
+      </div>`).join('');
+
+    document.getElementById('chk-summary-text').innerHTML = `
+      <div style="margin-bottom:15px; border-bottom:1px solid #eee; padding-bottom:10px;">
+        <h4 style="font-size:14px; margin-bottom:10px; color:#333;">結帳商品清單</h4>
+        ${itemsHtml}
+      </div>
+      <div style="display:flex; justify-content:space-between;"><span>商品小計:</span> <span>$${subtotal.toLocaleString()}</span></div>
+      <div style="display:flex; justify-content:space-between;"><span>運費:</span> <span>${shippingDisplay}</span></div>
+      <div style="display:flex; justify-content:space-between; color:var(--success);"><span>優惠折抵:</span> <span>-$${(cDiscount+usePoints).toLocaleString()}</span></div>
+      <hr style="margin:10px 0; border-top:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; font-weight:bold; font-size:18px; color:var(--danger);"><span>應付總額:</span> <span>$${finalTotal.toLocaleString()}</span></div>
+      <div style="margin-top:10px; font-size:13px; color:var(--primary); text-align:right;">💡 完成訂單可獲得 ${earnPoints} 點</div>`;
+  },
+
+  submitOrder(e) {
+    e.preventDefault(); 
+    let u = this.state.usersDB[this.state.user]; 
+    if(!u) return;
+    
+    let orderId = 'ORD' + new Date().getTime().toString().slice(-6);
+    let subtotal = this.state.cart.reduce((s,i) => s + i.price * i.qty, 0);
+    
+    let canProceed = true; 
+    this.state.cart.forEach(item => { 
+      const p = DB.products.find(x => x.id === item.id); 
+      if(!p || p.stock < item.qty) canProceed = false; 
+    });
+    
+    if(!canProceed) return this.showToast(`部分商品庫存不足，請調整購物車！`);
+
+    let shippingFee = parseInt(document.getElementById('chk-region').value) || 0;
+    
+    // 💡 新增：送出訂單時，確保滿 $15,000 的運費以 0 元計算寫入資料庫
+    if (subtotal >= 15000) {
+        shippingFee = 0;
+    }
+
+    let cSelect = document.getElementById('chk-coupon'); 
+    let cDiscount = cSelect.value ? parseInt(cSelect.options[cSelect.selectedIndex].dataset.discount) : 0;
+    let usePoints = parseInt(document.getElementById('chk-points').value) || 0;
+    let finalTotal = subtotal + shippingFee - cDiscount - usePoints; 
+    let earnPoints = Math.floor(finalTotal / 100);
+
+    if(cSelect.value) u.coupons.find(x => x.id === cSelect.value).used = true;
+    u.points = (u.points || 0) - usePoints + earnPoints;
+    
+    this.state.cart.forEach(item => { 
+      const p = DB.products.find(x => x.id === item.id); 
+      p.stock -= item.qty; p.soldCount = (p.soldCount || 0) + item.qty; 
+      
+      window.dbAPI.saveProduct(p);
+    });
+
+    let invVal = document.getElementById('chk-invoice').value; 
+    let invDetail = document.getElementById('chk-invoice-detail') ? document.getElementById('chk-invoice-detail').value : '';
+    let invString = invVal + (invDetail && invVal !== '會員載具' ? ` (${invDetail})` : '');
+    
+    let regionSelect = document.getElementById('chk-region');
+    let regionText = regionSelect.options[regionSelect.selectedIndex].text.split(' ')[0]; 
+    
+    let isInstallment = document.getElementById('chk-installment') && document.getElementById('chk-installment').checked;
+    let isCreditCard = document.getElementById('pay-cc') ? document.getElementById('pay-cc').checked : true;
+    
+    let paymentModeStr = '';
+    if (isCreditCard) {
+        paymentModeStr = isInstallment ? `信用卡 ${document.getElementById('installment-select').value} 期 0 利率` : '信用卡一次付清';
+    } else {
+        paymentModeStr = '銀行轉帳';
+    }
+    
+    let exInfo = `付款: ${paymentModeStr} | 發票: ${invString} | 運費: $${shippingFee}`;
+    let fullAddress = `[${regionText}] ` + document.getElementById('chk-address').value;
+
+    let initialStatus = isCreditCard ? '備貨中' : '匯款確認中';
+
+    this.state.orders.unshift({ 
+      id: orderId, user: this.state.user, date: new Date().toLocaleDateString(), timestamp: new Date().getTime(),
+      items: [...this.state.cart], status: initialStatus, total: finalTotal, 
+      discountInfo: `已折抵 $${cDiscount+usePoints}`, extraInfo: exInfo, address: fullAddress,
+      paymentMethod: isCreditCard ? 'credit-card' : 'bank-transfer',
+      bankTransferLast5: ''
+    });
+    
+    this.state.cart = []; this.saveState(); this.showToast(`✅ 訂單結帳成功！獲得 ${earnPoints} 點`); this.navigate('member');
+  },
+
+  submitBankLast5(orderId) {
+    const input = document.getElementById(`bank-last5-${orderId}`);
+    const val = input ? input.value.trim() : '';
+    if (!val || val.length !== 5 || !/^\d+$/.test(val)) {
+      return this.showToast('⚠️ 請輸入正確的 5 碼數字');
+    }
+    let order = this.state.orders.find(o => o.id === orderId);
+    if (order) {
+      order.bankTransferLast5 = val;
+      this.saveState();
+      this.renderMember();
+      this.showToast('✅ 匯款後五碼已送出，請靜候對帳');
+    }
+  },
+
+  login() {
+    const email = document.getElementById('login-email').value; const pw = document.getElementById('login-pw').value;
+    if(!email || !pw) return this.showToast('⚠️ 請輸入完整的 Email 與密碼');
+    this.processLogin(email, pw);
+  },
+
+  processLogin(email, pw) {
+    if(!this.state.usersDB) this.state.usersDB = {};
+    if(!this.state.usersDB[email]) {
+      this.state.usersDB[email] = { password: pw, points: 50, coupons: [], lastCheckInDate: '' }; 
+      this.showToast('🎉 新會員註冊成功！已贈送 50 點購物金');
+    } else {
+      if(this.state.usersDB[email].password !== pw) return this.showToast('❌ 密碼錯誤，請重新輸入');
+      this.showToast('✅ 登入成功');
+    }
+    this.state.user = email; 
+    this.saveState();
+    if(this.state.view === 'list') this.renderList();
+    if(this.state.view === 'home') this.renderHome();
+    if(this.state.view === 'detail') this.renderDetail();
+    this.renderMember(); 
+  },
+  
+  logout() { this.state.user = null; this.saveState(); this.renderMember(); },
+
+  claimDailyPoint() {
+    let u = this.state.usersDB[this.state.user]; 
+    if(!u) return;
+    let today = new Date().toLocaleDateString();
+    if(u.lastCheckInDate === today) return this.showToast('⚠️ 您今天已經簽到過囉！明天再來吧！');
+    u.points = (u.points || 0) + 10; u.lastCheckInDate = today; this.saveState(); this.renderMember();
+    this.showToast('🎁 簽到成功！獲得 10 點');
+  },
+
+  claimCoupon(id, name, min, discount) {
+    let u = this.state.usersDB[this.state.user];
+    if(!u) return;
+    if(!u.coupons) u.coupons = [];
+    if(u.coupons.find(c => c.id === id)) return this.showToast('您已經領取過這張折價券囉！');
+    u.coupons.push({ id, name, min, discount, used: false });
+    this.saveState(); this.renderMember(); this.showToast('🎟️ 成功領取折價券！');
+  },
+
+  openReturnModal(orderId) {
+    document.getElementById('rtn-order-id').value = orderId;
+    document.getElementById('rtn-reason').value = '商品瑕疵或損壞';
+    document.getElementById('rtn-detail').value = '';
+    document.getElementById('rtn-img').value = '';
+    document.getElementById('return-modal').style.display = 'flex';
+  },
+
+  submitReturn(e) {
+    e.preventDefault();
+    const orderId = document.getElementById('rtn-order-id').value;
+    const reason = document.getElementById('rtn-reason').value;
+    const detail = document.getElementById('rtn-detail').value;
+    const fileInput = document.getElementById('rtn-img');
+    
+    if(fileInput.files && fileInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+         this.processReturnSave(orderId, reason, detail, evt.target.result);
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      this.processReturnSave(orderId, reason, detail, '');
+    }
+  },
+
+  processReturnSave(orderId, reason, detail, imgBase64) {
+    let order = this.state.orders.find(o => o.id === orderId);
+    if(order) {
+      order.status = '退換貨處理中';
+      order.returnInfo = { date: new Date().toLocaleDateString(), reason: reason, detail: detail, img: imgBase64 };
+      this.saveState();
+      this.renderMember();
+      document.getElementById('return-modal').style.display = 'none';
+      this.showToast('✅ 退換貨申請已送出！');
+    }
+  },
+
+  submitReview(orderId) {
+    const score = document.getElementById(`review-score-${orderId}`).value;
+    const text = document.getElementById(`review-text-${orderId}`).value;
+    const fileInput = document.getElementById(`review-img-${orderId}`);
+    
+    if (!text.trim()) {
+      return this.showToast('⚠️ 請填寫評價內容！');
+    }
+
+    const processSave = (imgBase64) => {
+      let order = this.state.orders.find(o => o.id === orderId);
+      if (order) {
+        order.isReviewed = true;
+        order.reviewScore = score;
+        order.reviewText = text;
+        if (imgBase64) order.reviewImg = imgBase64; 
+
+        let u = this.state.usersDB[this.state.user];
+        if (u) {
+          u.points = (u.points || 0) + 20; 
+        }
+
+        this.saveState();
+        this.renderMember();
+        this.renderHome(); 
+        this.showToast('✅ 感謝您的評價！已獲得 20 點購物金');
+      }
+    };
+
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+         processSave(evt.target.result);
+      };
+      reader.readAsDataURL(fileInput.files[0]);
+    } else {
+      processSave('');
+    }
+  },
+
+  renderMember() {
+    if(this.state.user) {
+      document.getElementById('member-login').style.display = 'none'; 
+      document.getElementById('member-dashboard').style.display = 'block';
+      document.getElementById('user-email-display').innerText = this.state.user;
+      
+      let u = this.state.usersDB[this.state.user] || { points: 0, coupons: [] }; 
+      document.getElementById('mem-points').innerText = u.points || 0;
+      
+      let today = new Date().toLocaleDateString();
+      if(u.lastCheckInDate === today) {
+         document.getElementById('mem-checkin-btn-area').innerHTML = `<button class="btn btn-primary" style="width:100%; margin-top:15px; opacity:0.5; cursor:not-allowed;" disabled>🎁 今日已簽到</button>`;
+      } else {
+         document.getElementById('mem-checkin-btn-area').innerHTML = `<button class="btn btn-primary" style="width:100%; margin-top:15px;" onclick="app.claimDailyPoint()">🎁 每日簽到領 10 點</button>`;
+      }
+
+      let hasClaimed = (u.coupons || []).find(c => c.id === 'CP1000');
+      document.getElementById('mem-claim-coupons').innerHTML = hasClaimed ? '<p style="color:#777; font-size:14px;">目前暫無其他可領取的折價券</p>' : `
+        <div class="ticket">
+          <div><strong style="font-size:18px; color:#d35400;">新居落成 滿萬折千</strong><br><span style="font-size:14px; color:#777;">單筆訂單滿 $10,000 折抵 $1,000</span></div>
+          <button class="btn btn-primary" onclick="app.claimCoupon('CP1000', '滿萬折千', 10000, 1000)">立即領取</button>
+        </div>`;
+
+      let unusedCoupons = (u.coupons || []).filter(c => !c.used);
+      document.getElementById('mem-coupons').innerHTML = unusedCoupons.length ? unusedCoupons.map(c => `
+        <div style="background:#fff; border:1px solid var(--success); padding:10px 15px; border-radius:8px; width:200px; border-left:4px solid var(--success);">
+          <strong>${c.name}</strong><br><span style="font-size:12px; color:#555;">滿 $${c.min} 可折抵 $${c.discount}</span>
+        </div>`).join('') : '<p style="color:#777;">目前沒有可用的折價券</p>';
+
+      let myOrders = this.state.orders.filter(o => o.user === this.state.user);
+      document.getElementById('order-history').innerHTML = myOrders.length ? myOrders.map(o => {
+        let returnBtnHtml = '';
+        let orderTimeObj = new Date(o.timestamp || o.date);
+        
+        let y = orderTimeObj.getFullYear(), m = String(orderTimeObj.getMonth()+1).padStart(2,'0'), d = String(orderTimeObj.getDate()).padStart(2,'0');
+        let hh = String(orderTimeObj.getHours()).padStart(2,'0'), mm = String(orderTimeObj.getMinutes()).padStart(2,'0');
+        let formattedTime = `${y}-${m}-${d} ${hh}:${mm}`;
+        
+        let estDate = new Date(orderTimeObj.getTime() + 7 * 24 * 60 * 60 * 1000);
+        let ey = estDate.getFullYear(), em = String(estDate.getMonth()+1).padStart(2,'0'), ed = String(estDate.getDate()).padStart(2,'0');
+        let estDelivery = `${ey}-${em}-${ed}`;
+        let estDeliveryHtml = o.status === '已完成' ? '' : `<br>🚚 預計到貨時間：${estDelivery}`;
+
+        if(o.status === '已完成' && !o.returnInfo) {
+          let diffDays = (new Date().getTime() - orderTimeObj.getTime()) / (1000 * 60 * 60 * 24);
+          if(diffDays <= 7) returnBtnHtml = `<button class="btn btn-outline" style="margin-top:10px; padding:4px 8px; font-size:12px; color:var(--danger); border-color:var(--danger);" onclick="app.openReturnModal('${o.id}')">申請退換貨</button>`;
+        }
+        
+        let rtnTagHtml = '';
+        if(o.returnInfo) rtnTagHtml = `<div style="margin-top:10px; padding:8px; background:#fdf2e9; border-radius:4px; font-size:12px; color:#d35400;">📦 已申請退貨 (原因: ${o.returnInfo.reason})</div>`;
+
+        let bankTransferHtml = '';
+        if (o.paymentMethod === 'bank-transfer' && (o.status === '匯款確認中' || o.bankTransferLast5)) {
+          if (!o.bankTransferLast5) {
+             bankTransferHtml = `
+               <div style="margin-top:10px; padding:12px; background:#fff3cd; border-radius:4px; border:1px solid #ffe69c;">
+                 <div style="font-size:13px; color:#856404; margin-bottom:8px; font-weight:bold;">🏦 請輸入匯款帳號後五碼以利對帳：</div>
+                 <div style="display:flex; gap:10px;">
+                   <input type="text" id="bank-last5-${o.id}" maxlength="5" placeholder="例如: 12345" style="width:120px; padding:6px 10px; border:1px solid #ccc; border-radius:4px; font-size:14px;">
+                   <button class="btn btn-primary" style="padding:6px 15px; font-size:14px;" onclick="app.submitBankLast5('${o.id}')">確認送出</button>
+                 </div>
+               </div>
+             `;
+          } else {
+             bankTransferHtml = `
+               <div style="margin-top:10px; padding:10px; background:#d4edda; border-radius:4px; border:1px solid #c3e6cb; font-size:13px; color:#155724;">
+                 🏦 已提供匯款後五碼：<strong>${o.bankTransferLast5}</strong>
+               </div>
+             `;
+          }
+        }
+
+        let reviewHtml = '';
+        if(o.status === '已完成' && !o.isReviewed && !o.returnInfo) {
+          reviewHtml = `
+          <div style="margin-top:15px; padding-top:15px; border-top:1px dashed var(--border);">
+            <div style="font-size:14px; font-weight:bold; color:var(--primary); margin-bottom:8px;">⭐ 評價此訂單 (完成評價即可獲得 20 點)</div>
+            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+              <select id="review-score-${o.id}" style="width:130px; padding:6px; font-size:14px; border:1px solid var(--border); border-radius:4px;">
+                <option value="5">⭐⭐⭐⭐⭐</option>
+                <option value="4">⭐⭐⭐⭐</option>
+                <option value="3">⭐⭐⭐</option>
+                <option value="2">⭐⭐</option>
+                <option value="1">⭐</option>
+              </select>
+              <input type="text" id="review-text-${o.id}" placeholder="寫下您的評價與心得..." style="flex:1; padding:6px; font-size:14px; border:1px solid var(--border); border-radius:4px; min-width: 150px;">
+              <input type="file" id="review-img-${o.id}" accept="image/*" style="width:200px; padding:4px; font-size:13px;">
+              <button class="btn btn-primary" onclick="app.submitReview('${o.id}')" style="padding:6px 12px; white-space:nowrap;">送出評價</button>
+            </div>
+          </div>`;
+        } else if(o.status === '已完成' && o.isReviewed) {
+          reviewHtml = `
+          <div style="margin-top:15px; padding-top:15px; border-top:1px dashed var(--border);">
+            <div style="font-size:13px; color:#555; background:#f9f9f9; padding:10px; border-radius:4px; border-left:4px solid var(--success);">
+              <div style="font-weight:bold; color:#333; margin-bottom:4px;">⭐ 您的評分：${o.reviewScore} 星</div>
+              <div>💬 您的留言：${o.reviewText}</div>
+              ${o.reviewImg ? `<div style="margin-top:8px;"><img src="${o.reviewImg}" style="max-width:150px; border-radius:4px; border:1px solid var(--border);"></div>` : ''}
+              <div style="color:var(--success); margin-top:6px; font-size:12px;">✅ 已完成評價並領取點數</div>
+              ${o.adminReply ? `<div style="margin-top:8px; padding:8px; background:#e8f8f5; border-radius:4px; color:#27ae60; border-left:3px solid #27ae60;"><strong style="font-size:13px;">客服回覆：</strong><br>${o.adminReply}</div>` : ''}
+            </div>
+          </div>`;
+        }
+
+        return `
+        <div style="border:1px solid var(--border); padding:15px; margin-bottom:10px; border-radius:8px; background:white;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <strong>訂單：${o.id}</strong><span style="color:white; background:var(--primary); padding:2px 8px; border-radius:12px; font-size:12px;">${o.status}</span>
+          </div>
+          <div style="font-size:13px; color:#555; margin-bottom:8px; background:#f0f8ff; padding:6px 10px; border-radius:4px;">🕒 成立時間：${formattedTime}${estDeliveryHtml}</div>
+          <div style="font-size:14px; color:var(--text-muted); margin-bottom:10px;">${o.items.map(i=>i.name + ' x ' + i.qty).join('<br>')}</div>
+          <div style="font-size:12px; color:#777; background:#f9f9f9; padding:5px; border-radius:4px; margin-bottom:10px;">ℹ️ ${o.extraInfo || ''}<br>🏠 配送至: ${o.address || '無紀錄'}</div>
+          ${bankTransferHtml}
+          ${rtnTagHtml}
+          <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:10px;">
+            <div>${returnBtnHtml}</div>
+            <div style="text-align:right;">
+              <span style="font-size:12px; color:var(--success);">${o.discountInfo || ''}</span><br>
+              <strong style="color:var(--danger); font-size:16px;">總計: $${o.total.toLocaleString()}</strong>
+            </div>
+          </div>
+          ${reviewHtml}
+        </div>`
+      }).join('') : '<p>尚無訂單紀錄</p>';
+    } else {
+      document.getElementById('member-login').style.display = 'block'; document.getElementById('member-dashboard').style.display = 'none';
+      document.getElementById('login-email').value = ''; document.getElementById('login-pw').value = '';
+    }
+  }
+};
+window.onload = () => app.init();
+</script>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-app.js";
+  import { getFirestore, collection, getDocs, setDoc, doc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.1/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCGeNCoqImHVNppGEiGNNYAiiwuIvublVA",
+    authDomain: "chg-home.firebaseapp.com",
+    projectId: "chg-home",
+    storageBucket: "chg-home.firebasestorage.app",
+    messagingSenderId: "191029130468",
+    appId: "1:191029130468:web:09c9821695f3a0181ca8f1",
+    measurementId: "G-W2F489G53R"
+  };
+
+  const appFirebase = initializeApp(firebaseConfig);
+  const db = getFirestore(appFirebase);
+
+  window.dbAPI = {
+    getProducts: async () => {
+      const querySnapshot = await getDocs(collection(db, "products"));
+      let products = [];
+      querySnapshot.forEach((doc) => {
+        products.push(doc.data());
+      });
+      return products;
+    },
+
+    listenProducts: (callback) => {
+      onSnapshot(collection(db, "products"), (snapshot) => {
+        let products = [];
+        snapshot.forEach((doc) => {
+          products.push(doc.data());
+        });
+        callback(products); 
+      });
+    },
+    
+    saveProduct: async (productObj) => {
+      await setDoc(doc(db, "products", productObj.id), productObj);
+    },
+
+    deleteProduct: async (productId) => {
+      await deleteDoc(doc(db, "products", productId));
+    }
+  };
+</script>
+
+</body>
+</html>
